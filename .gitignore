@@ -1,0 +1,75 @@
+# =========================
+# Environment
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Laravel
+# =========================
+backend/vendor/
+backend/node_modules/
+backend/storage/*.key
+backend/storage/framework/cache/*
+backend/storage/framework/sessions/*
+backend/storage/framework/testing/*
+backend/storage/framework/views/*
+backend/storage/logs/*
+
+# Laravel environment
+backend/.env
+
+# =========================
+# React
+# =========================
+frontend-admin/node_modules/
+frontend-admin/dist/
+frontend-admin/.env
+frontend-admin/.env.local
+
+frontend-customer/node_modules/
+frontend-customer/dist/
+frontend-customer/.env
+frontend-customer/.env.local
+
+# =========================
+# Node
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+# Docker
+# =========================
+*.log
+
+# =========================
+# IDE
+# =========================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+.idea/
+*.swp
+*.swo
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# PHP
+# =========================
+.phpunit.result.cache
+
+# =========================
+# Coverage
+# =========================
+coverage/
