@@ -24,8 +24,47 @@ services:
       DB_USERNAME: hotel_user
       DB_PASSWORD: hotel_password
 
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+
       REDIS_HOST: redis
       REDIS_PORT: 6379
+
+    networks:
+      - hotel_network
+
+  queue:
+    image: hotel-management-system-backend
+    container_name: hotel_queue
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      APP_DEBUG: true
+
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: hotel_management
+      DB_USERNAME: hotel_user
+      DB_PASSWORD: hotel_password
+
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+    command: php artisan queue:work redis --sleep=1 --tries=3 --timeout=90
 
     networks:
       - hotel_network
@@ -42,6 +81,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U hotel_user -d hotel_management"]
       interval: 5s

@@ -6,20 +6,33 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
+
+            $table->foreignId('booking_id')
+                ->constrained('bookings')
+                ->cascadeOnDelete();
+
+            $table->foreignId('guest_id')
+                ->constrained('guests')
+                ->cascadeOnDelete();
+
+            $table->unsignedSmallInteger('rating');
+
+            $table->text('comment')->nullable();
+
+            $table->string('status', 30)->default('pending');
+
             $table->timestamps();
+
+            $table->index('booking_id');
+            $table->index('guest_id');
+            $table->index('status');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('reviews');

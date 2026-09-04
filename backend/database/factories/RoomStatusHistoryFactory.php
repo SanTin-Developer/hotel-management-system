@@ -2,23 +2,23 @@
 
 namespace Database\Factories;
 
+use App\Models\Room;
 use App\Models\RoomStatusHistory;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<RoomStatusHistory>
- */
 class RoomStatusHistoryFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    protected $model = RoomStatusHistory::class;
+
     public function definition(): array
     {
         return [
-            //
+            'room_id' => Room::factory(),
+            'status' => fake()->randomElement(['available', 'occupied', 'maintenance', 'cleaning', 'out_of_service']),
+            'changed_by' => User::factory(),
+            'note' => fake()->sentence(),
+            'created_at' => now(),
         ];
     }
 }

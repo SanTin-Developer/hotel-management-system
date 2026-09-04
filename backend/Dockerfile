@@ -19,7 +19,8 @@ COPY . .
 RUN composer install \
     --no-interaction \
     --prefer-dist \
-    --optimize-autoloader
+    --optimize-autoloader \
+    --no-progress
 
 # Laravel permissions
 RUN chown -R www-data:www-data \

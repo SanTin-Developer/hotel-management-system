@@ -1,0 +1,1 @@
+CREATE DATABASE hotel_management_test;
