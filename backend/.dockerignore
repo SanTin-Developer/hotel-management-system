@@ -2,4 +2,4 @@ vendor
 node_modules
 .git
 .env
-storage/logsc
+storage/logs/*.log

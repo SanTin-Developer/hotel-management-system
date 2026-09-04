@@ -2,28 +2,86 @@
 
 namespace App\Http\Requests\Api\V1\Auth;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class RegisterRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            //
+            'full_name' => [
+                'required',
+                'string',
+                'min:2',
+                'max:150',
+            ],
+
+            'country' => [
+                'required',
+                'string',
+                'max:100',
+            ],
+
+            'id_type' => [
+                'required',
+                'in:national_id,passport',
+            ],
+
+            'id_number' => [
+                'required',
+                'string',
+                'max:100',
+            ],
+
+            'email' => [
+                'required',
+                'email',
+                'max:255',
+                'unique:users,email',
+            ],
+
+            'phone' => [
+                'required',
+                'string',
+                'max:30',
+            ],
+
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+            ],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function (Validator $validator) {
+                $country = strtolower(trim($this->input('country')));
+                $idType = $this->input('id_type');
+
+                if ($country === 'cambodia' && $idType !== 'national_id') {
+                    $validator->errors()->add(
+                        'id_type',
+                        'Customers from Cambodia must use a national ID.'
+                    );
+                }
+
+                if ($country !== 'cambodia' && $idType !== 'passport') {
+                    $validator->errors()->add(
+                        'id_type',
+                        'Customers from other countries must use a passport.'
+                    );
+                }
+            },
         ];
     }
 }

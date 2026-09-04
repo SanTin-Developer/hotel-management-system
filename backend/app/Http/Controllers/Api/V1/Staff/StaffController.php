@@ -3,47 +3,67 @@
 namespace App\Http\Controllers\Api\V1\Staff;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Api\V1\Staff\IndexStaffRequest;
+use App\Http\Requests\Api\V1\Staff\StoreStaffRequest;
+use App\Http\Requests\Api\V1\Staff\UpdateStaffRequest;
+use App\Http\Resources\Api\V1\StaffResource;
+use App\Models\Staff;
+use App\Services\Staff\StaffService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class StaffController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
+    public function __construct(
+        private readonly StaffService $staffService
+    ) {}
+
+    public function index(
+        IndexStaffRequest $request
+    ): AnonymousResourceCollection {
+        return StaffResource::collection(
+            $this->staffService->getAll(
+                $request->validated()
+            )
+        );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(StoreStaffRequest $request): JsonResponse
     {
-        //
+        $staff = $this->staffService->create(
+            $request->validated()
+        );
+
+        return (new StaffResource($staff))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function show(Staff $staff): StaffResource
     {
-        //
+        $staff = $this->staffService->getById($staff);
+
+        return new StaffResource($staff);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
+    public function update(
+        UpdateStaffRequest $request,
+        Staff $staff
+    ): StaffResource {
+        $staff = $this->staffService->update(
+            $staff,
+            $request->validated()
+        );
+
+        return new StaffResource($staff);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(Staff $staff): JsonResponse
     {
-        //
+        $this->staffService->delete($staff);
+
+        return response()->json([
+            'message' => 'Staff member deleted successfully.',
+        ]);
     }
 }

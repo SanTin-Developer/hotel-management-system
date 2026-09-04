@@ -4,63 +4,36 @@ namespace App\Policies;
 
 use App\Models\Booking;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class BookingPolicy
 {
-    /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can view the model.
-     */
     public function view(User $user, Booking $booking): bool
     {
-        return false;
+        return $user->hasAnyRole(['admin', 'manager', 'staff'])
+            || $booking->guest?->email === $user->email;
     }
 
-    /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
+    public function cancel(User $user, Booking $booking): bool
     {
-        return false;
+        if ($user->hasAnyRole(['admin', 'manager'])) {
+            return true;
+        }
+
+        return $user->hasRole('customer')
+            && $booking->guest?->email === $user->email
+            && in_array($booking->status, [
+                'pending',
+                'confirmed',
+            ], true);
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
-    public function update(User $user, Booking $booking): bool
+    public function confirm(User $user, Booking $booking): bool
     {
-        return false;
+        return $user->hasAnyRole(['admin', 'manager']);
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, Booking $booking): bool
+    public function complete(User $user, Booking $booking): bool
     {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Booking $booking): bool
-    {
-        return false;
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Booking $booking): bool
-    {
-        return false;
+        return $user->hasAnyRole(['admin', 'manager', 'staff']);
     }
 }

@@ -6,20 +6,32 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('room_types', function (Blueprint $table) {
             $table->id();
+
+            $table->string('name', 100)->unique();
+            $table->text('description')->nullable();
+
+            $table->unsignedSmallInteger('capacity');
+            $table->decimal('base_price', 12, 2);
+
+            $table->decimal('size', 8, 2)->nullable();
+            $table->string('bed_type', 100)->nullable();
+
+            $table->text('image_url')->nullable();
+
+            $table->string('status', 30)->default('active');
+
             $table->timestamps();
+
+            $table->index('status');
+            $table->index('base_price');
+            $table->index('capacity');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('room_types');

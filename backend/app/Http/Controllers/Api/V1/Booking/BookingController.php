@@ -3,47 +3,90 @@
 namespace App\Http\Controllers\Api\V1\Booking;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Api\V1\Booking\IndexBookingRequest;
+use App\Http\Requests\Api\V1\Booking\RoomAvailabilityRequest;
+use App\Http\Requests\Api\V1\Booking\StoreBookingRequest;
+use App\Http\Resources\Api\V1\BookingResource;
+use App\Http\Resources\Api\V1\RoomResource;
+use App\Models\Booking;
+use App\Services\Booking\BookingService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class BookingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
+    public function __construct(
+        private readonly BookingService $bookingService
+    ) {}
+
+    public function index(
+        IndexBookingRequest $request
+    ): AnonymousResourceCollection {
+        return BookingResource::collection(
+            $this->bookingService->getAll(
+                $request->validated()
+            )
+        );
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
+    public function availability(
+        RoomAvailabilityRequest $request
+    ): AnonymousResourceCollection {
+        $rooms = $this->bookingService->getAvailableRooms(
+            $request->validated('check_in'),
+            $request->validated('check_out')
+        );
+
+        return RoomResource::collection($rooms);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function store(StoreBookingRequest $request): JsonResponse
     {
-        //
+        $booking = $this->bookingService->create(
+            $request->validated()
+        );
+
+        return (new BookingResource($booking))
+            ->response()
+            ->setStatusCode(201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
+    public function confirm(
+        Booking $booking
+    ): BookingResource {
+        request()->user()->can('confirm', $booking);
+
+        $booking = $this->bookingService->confirm(
+            $booking,
+            request()->user()->id
+        );
+
+        return new BookingResource($booking);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+    public function cancel(
+        Booking $booking
+    ): BookingResource {
+        request()->user()->can('cancel', $booking);
+
+        $booking = $this->bookingService->cancel(
+            $booking,
+            request()->user()->id
+        );
+
+        return new BookingResource($booking);
+    }
+
+    public function complete(
+        Booking $booking
+    ): BookingResource {
+        request()->user()->can('complete', $booking);
+
+        $booking = $this->bookingService->complete(
+            $booking,
+            request()->user()->id
+        );
+
+        return new BookingResource($booking);
     }
 }

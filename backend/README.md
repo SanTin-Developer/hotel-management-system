@@ -1,58 +1,294 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Hotel Management System — Backend API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A production-ready Laravel 13 REST API for hotel operations: room management, bookings, payments, coupons, reviews, guests, staff, and role-based access control.
 
-## About Laravel
+## Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| Component | Technology |
+|-----------|-----------|
+| Framework | Laravel 13 |
+| Language | PHP 8.3+ |
+| Database | PostgreSQL |
+| Cache / Queue | Redis |
+| Auth | Laravel Sanctum (Bearer tokens) |
+| RBAC | spatie/laravel-permission |
+| Data Layer | spatie/laravel-data, spatie/laravel-query-builder |
+| Testing | Pest + PHPUnit |
+| Static Analysis | Larastan |
+| Code Style | Laravel Pint |
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Quick Start (Docker)
 
 ```bash
-composer require laravel/boost --dev
+# From the repository root
+docker compose up -d --build
 
-php artisan boost:install
+# Run migrations and seed
+docker compose exec backend php artisan migrate --seed
+
+# Generate application key (first time)
+docker compose exec backend php artisan key:generate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+The API will be available at `http://localhost:8000`.
 
-## Contributing
+## Manual Setup
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve
+```
 
-## Code of Conduct
+## Database Seeding
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+php artisan db:seed
+```
 
-## Security Vulnerabilities
+The seeders create:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- **Roles:** `admin`, `manager`, `staff`, `customer`
+- **Permissions:** granular CRUD/moderate permissions per resource
+- **Default admin:** `admin@hotel.com` / `password`
 
-## License
+## Authentication
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+All protected routes use Sanctum bearer tokens.
+
+```
+POST /api/v1/auth/register      Register (sends OTP email)
+POST /api/v1/auth/verify-otp    Verify email with OTP
+POST /api/v1/auth/resend-otp    Resend OTP
+POST /api/v1/auth/login         Login (returns token)
+POST /api/v1/auth/logout        Revoke token
+GET  /api/v1/auth/me            Current authenticated user
+POST /api/v1/auth/password/forgot
+POST /api/v1/auth/password/reset
+```
+
+### Login Example
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@hotel.com", "password": "password"}'
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "token": "1|abcdef...",
+    "user": { "id": 1, "name": "Hotel Admin", "email": "admin@hotel.com" }
+  }
+}
+```
+
+Include the token in subsequent requests:
+
+```
+Authorization: Bearer <token>
+```
+
+## API Endpoints
+
+All versioned under `/api/v1`.
+
+### Auth
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/auth/register` | — | Register a customer |
+| POST | `/auth/verify-otp` | — | Verify email OTP |
+| POST | `/auth/resend-otp` | — | Resend verification OTP |
+| POST | `/auth/login` | — | Login |
+| POST | `/auth/logout` | ✓ | Logout |
+| GET | `/auth/me` | ✓ | Current user |
+| POST | `/auth/password/forgot` | — | Request password reset |
+| POST | `/auth/password/reset` | — | Reset password |
+
+### Room Types
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/room-types` | — | List room types |
+| GET | `/room-types/{id}` | — | Show room type |
+| POST | `/room-types` | ✓ permission | Create room type |
+| PUT | `/room-types/{id}` | ✓ permission | Update room type |
+| DELETE | `/room-types/{id}` | ✓ permission | Delete room type |
+
+### Rooms
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/rooms` | — | List rooms |
+| GET | `/rooms/{id}` | — | Show room |
+| POST | `/rooms` | ✓ permission | Create room |
+| PUT | `/rooms/{id}` | ✓ permission | Update room |
+| DELETE | `/rooms/{id}` | ✓ permission | Delete room |
+| PUT | `/rooms/{id}/amenities` | ✓ permission | Sync amenities |
+| DELETE | `/rooms/{id}/amenities/{amenity}` | ✓ permission | Remove amenity |
+
+### Amenities
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/amenities` | — | List amenities |
+| GET | `/amenities/{id}` | — | Show amenity |
+| POST | `/amenities` | ✓ permission | Create amenity |
+| PUT | `/amenities/{id}` | ✓ permission | Update amenity |
+| DELETE | `/amenities/{id}` | ✓ permission | Delete amenity |
+
+### Bookings
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/bookings` | ✓ | List bookings |
+| GET | `/bookings/availability` | — | Check room availability |
+| POST | `/bookings` | ✓ permission | Create booking |
+| POST | `/bookings/{id}/confirm` | ✓ permission | Confirm booking |
+| POST | `/bookings/{id}/cancel` | ✓ permission | Cancel booking |
+| POST | `/bookings/{id}/complete` | ✓ permission | Complete booking |
+
+### Payments
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/payments` | ✓ permission | Create payment |
+| POST | `/payments/{id}/paid` | ✓ permission | Mark as paid |
+| POST | `/payments/{id}/failed` | ✓ permission | Mark as failed |
+| POST | `/payments/{id}/refund` | ✓ permission | Refund payment |
+
+### Guests
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/guests` | ✓ permission | List guests |
+| GET | `/guests/{id}` | ✓ permission | Show guest |
+| POST | `/guests` | ✓ permission | Create guest |
+| PUT | `/guests/{id}` | ✓ permission | Update guest |
+| DELETE | `/guests/{id}` | ✓ permission | Delete guest |
+
+### Coupons
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/coupons` | ✓ permission | List coupons |
+| GET | `/coupons/{id}` | ✓ permission | Show coupon |
+| POST | `/coupons` | ✓ permission | Create coupon |
+| PUT | `/coupons/{id}` | ✓ permission | Update coupon |
+| DELETE | `/coupons/{id}` | ✓ permission | Delete coupon |
+
+### Reviews
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/reviews` | ✓ | List reviews |
+| GET | `/reviews/{id}` | — | Show review |
+| POST | `/reviews` | ✓ | Create review |
+| PUT | `/reviews/{id}` | ✓ | Update review |
+| DELETE | `/reviews/{id}` | ✓ | Delete review |
+| POST | `/reviews/{id}/approve` | ✓ permission | Approve review |
+| POST | `/reviews/{id}/reject` | ✓ permission | Reject review |
+
+### Staff
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/staff` | ✓ permission | List staff |
+| GET | `/staff/{id}` | ✓ permission | Show staff |
+| POST | `/staff` | ✓ permission | Create staff |
+| PUT | `/staff/{id}` | ✓ permission | Update staff |
+| DELETE | `/staff/{id}` | ✓ permission | Delete staff |
+
+### Dashboard
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/dashboard/summary` | ✓ permission | Analytics summary (Redis cached) |
+
+## Roles & Permissions
+
+Four roles with granular permissions:
+
+| Permission | admin | manager | staff | customer |
+|------------|:-----:|:-------:|:-----:|:--------:|
+| room-types.view | ✓ | ✓ | ✓ | — |
+| room-types.create/update/delete | ✓ | ✓ | — | — |
+| rooms.view | ✓ | ✓ | ✓ | — |
+| rooms.create/update/delete | ✓ | ✓ | — | — |
+| amenities.view | ✓ | ✓ | ✓ | — |
+| amenities.create/update/delete | ✓ | ✓ | — | — |
+| bookings.view | ✓ | ✓ | ✓ | — |
+| bookings.create | ✓ | ✓ | — | ✓ |
+| bookings.confirm | ✓ | ✓ | — | — |
+| bookings.cancel | ✓ | ✓ | — | — |
+| bookings.complete | ✓ | ✓ | ✓ | — |
+| payments.view | ✓ | ✓ | ✓ | — |
+| payments.create/update/refund | ✓ | ✓ | — | — |
+| guests.view | ✓ | ✓ | ✓ | — |
+| guests.create/update/delete | ✓ | ✓ | — | — |
+| coupons.* | ✓ | ✓ | — | — |
+| reviews.view | ✓ | ✓ | ✓ | — |
+| reviews.create/update/delete | ✓ | ✓ | — | ✓ |
+| reviews.approve/reject | ✓ | ✓ | — | — |
+| staff.view | ✓ | ✓ | — | — |
+| staff.create/update/delete | ✓ | ✓ | — | — |
+| dashboard.view | ✓ | ✓ | — | — |
+
+## Business Features
+
+- **Concurrency-safe bookings** using PostgreSQL row locking to prevent double-booking
+- **Booking lifecycle** with status history auto-logged via DB triggers
+- **Payment balance tracking** — prevents over-payment and validates remaining balance
+- **Coupon engine** — percentage/fixed discounts with validity window, min amount, and usage limits
+- **Review moderation** workflow (pending → approved/rejected)
+- **OTP email verification** during registration
+- **Redis-cached dashboard analytics** via PostgreSQL views
+
+## Testing
+
+```bash
+# Run the full suite
+composer test
+
+# Run with coverage (requires Xdebug/pcov)
+php artisan test --coverage
+
+# Run specific test file
+php artisan test tests/Feature/Guest/GuestApiTest.php
+```
+
+Coverage includes:
+- Auth (registration, OTP, login, password reset)
+- Bookings (CRUD, status transitions, availability, concurrency)
+- Payments (creation, balance checks, invalid states)
+- Rooms, Room types, Amenities
+- Guests, Coupons, Staff, Reviews
+- Dashboard analytics
+- Performance/Query audit
+
+## Static Analysis & Code Style
+
+```bash
+# Larastan
+./vendor/bin/phpstan analyse
+
+# Pint
+./vendor/bin/pint
+
+# Pint (check only, for CI)
+./vendor/bin/pint --test
+```
+
+## Architecture
+
+```
+app/
+├── Http/
+│   ├── Controllers/Api/V1/     # Versioned controllers per resource
+│   ├── Requests/Api/V1/        # FormRequest validators per resource
+│   └── Resources/Api/V1/       # API resource transformers
+├── Policies/                   # Authorization policies
+├── Providers/AppServiceProvider.php  # Policy + rate limiter registration
+├── Services/                   # Business logic layer per resource
+└── Models/                     # Eloquent models
+database/
+├── migrations/                 # Schema (24 migrations)
+├── seeders/                    # Roles, permissions, users
+└── factories/                  # Model factories for testing
+routes/api.php                  # Versioned API routes
+```
