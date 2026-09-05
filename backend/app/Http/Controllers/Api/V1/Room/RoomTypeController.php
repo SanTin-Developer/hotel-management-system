@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\RoomType\IndexRoomTypeRequest;
 use App\Http\Requests\Api\V1\RoomType\StoreRoomTypeRequest;
 use App\Http\Requests\Api\V1\RoomType\UpdateRoomTypeRequest;
+use App\Http\Requests\Api\V1\RoomType\UploadRoomTypeImageRequest;
 use App\Http\Resources\Api\V1\RoomTypeResource;
 use App\Models\RoomType;
 use App\Services\RoomTypeService;
@@ -92,5 +93,24 @@ class RoomTypeController extends Controller
                 'message' => 'This room type cannot be deleted because it is still assigned to one or more rooms.',
             ], 409);
         }
+    }
+
+    public function uploadImage(
+        UploadRoomTypeImageRequest $request,
+        RoomType $roomType
+    ): RoomTypeResource {
+        $roomType = $this->roomTypeService->uploadImage(
+            $roomType,
+            $request->file('image')
+        );
+
+        return new RoomTypeResource($roomType);
+    }
+
+    public function removeImage(RoomType $roomType): RoomTypeResource
+    {
+        $roomType = $this->roomTypeService->removeImage($roomType);
+
+        return new RoomTypeResource($roomType);
     }
 }

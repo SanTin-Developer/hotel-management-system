@@ -19,6 +19,7 @@ class RoomResource extends JsonResource
             'floor' => $this->floor,
             'status' => $this->status,
             'description' => $this->description,
+            'image_url' => $this->image_url,
 
             'room_type' => $this->whenLoaded(
                 'roomType',
@@ -30,6 +31,17 @@ class RoomResource extends JsonResource
             ),
 
             'booking_items_count' => $this->whenCounted('bookingItems'),
+
+            'status_histories' => $this->whenLoaded(
+                'statusHistories',
+                fn () => $this->statusHistories->map(fn ($history) => [
+                    'id' => $history->id,
+                    'status' => $history->status,
+                    'note' => $history->note,
+                    'changed_by' => $history->changedBy?->name,
+                    'created_at' => $history->created_at?->toISOString(),
+                ])
+            ),
 
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),

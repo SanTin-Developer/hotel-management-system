@@ -56,6 +56,16 @@ class BookingResource extends JsonResource
                 ])
             ),
 
+            'coupon' => $this->whenLoaded(
+                'coupon',
+                fn () => [
+                    'id' => $this->coupon->id,
+                    'code' => $this->coupon->code,
+                    'discount_type' => $this->coupon->discount_type,
+                    'discount_value' => $this->coupon->discount_value,
+                ]
+            ),
+
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

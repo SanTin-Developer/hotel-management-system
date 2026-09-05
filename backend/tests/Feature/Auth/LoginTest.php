@@ -10,7 +10,10 @@ use Spatie\Permission\Models\Role;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    RateLimiter::clear('customer@example.com|'.request()->ip());
+    RateLimiter::clear('customer@example.com|127.0.0.1');
+    RateLimiter::clear('customer@example.com|');
+    RateLimiter::clear('attack@example.com|127.0.0.1');
+    RateLimiter::clear('attack@example.com|');
 
     Role::create([
         'name' => 'customer',

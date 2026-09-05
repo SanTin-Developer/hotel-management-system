@@ -17,6 +17,8 @@ class Staff extends Model
         'employee_id',
         'position',
         'hire_date',
+        'photo_url',
+        'photo_public_id',
         'status',
     ];
 

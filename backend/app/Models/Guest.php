@@ -23,6 +23,8 @@ class Guest extends Model
         'gender',
         'date_of_birth',
         'country',
+        'photo_url',
+        'photo_public_id',
     ];
 
     protected function casts(): array

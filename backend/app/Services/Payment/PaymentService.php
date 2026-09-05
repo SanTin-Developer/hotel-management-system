@@ -2,21 +2,26 @@
 
 namespace App\Services\Payment;
 
-use App\Models\Booking;
+use App\DTOs\Payment\CreatePaymentData;
 use App\Models\Payment;
+use App\Repositories\PaymentRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class PaymentService
 {
+    public function __construct(
+        private readonly PaymentRepository $paymentRepository
+    ) {}
+
     public function create(array $data): Payment
     {
-        return DB::transaction(function () use ($data) {
-            $booking = Booking::query()
-                ->with('payments')
-                ->whereKey($data['booking_id'])
-                ->lockForUpdate()
-                ->firstOrFail();
+        $dto = CreatePaymentData::fromArray($data);
+
+        return DB::transaction(function () use ($dto) {
+            $booking = $this->paymentRepository->getBookingWithPayments(
+                $dto->bookingId
+            );
 
             if ($booking->status === 'cancelled') {
                 throw ValidationException::withMessages([
@@ -34,12 +39,8 @@ class PaymentService
                 ]);
             }
 
-            if (! empty($data['transaction_id'])) {
-                $transactionExists = Payment::query()
-                    ->where('transaction_id', $data['transaction_id'])
-                    ->exists();
-
-                if ($transactionExists) {
+            if (! empty($dto->transactionId)) {
+                if ($this->paymentRepository->isTransactionUsed($dto->transactionId)) {
                     throw ValidationException::withMessages([
                         'transaction_id' => [
                             'This transaction ID has already been used.',
@@ -53,7 +54,7 @@ class PaymentService
                 ->sum('amount');
 
             $bookingTotal = (float) $booking->total_amount;
-            $paymentAmount = (float) $data['amount'];
+            $paymentAmount = $dto->amount;
 
             $remaining = round(
                 $bookingTotal - $paidAmount,
@@ -68,15 +69,15 @@ class PaymentService
                 ]);
             }
 
-            $status = $data['payment_method'] === 'cash'
+            $status = $dto->paymentMethod === 'cash'
                 ? 'paid'
                 : 'pending';
 
             $payment = Payment::create([
                 'booking_id' => $booking->id,
                 'amount' => $paymentAmount,
-                'payment_method' => $data['payment_method'],
-                'transaction_id' => $data['transaction_id'] ?? null,
+                'payment_method' => $dto->paymentMethod,
+                'transaction_id' => $dto->transactionId,
                 'status' => $status,
                 'paid_at' => $status === 'paid' ? now() : null,
             ]);
@@ -122,10 +123,7 @@ class PaymentService
             $newStatus,
             $transactionId
         ) {
-            $payment = Payment::query()
-                ->whereKey($payment->id)
-                ->lockForUpdate()
-                ->firstOrFail();
+            $payment = $this->paymentRepository->findLocked($payment->id);
 
             $allowedTransitions = [
                 'pending' => [
@@ -158,23 +156,23 @@ class PaymentService
                 ]);
             }
 
-            $data = [
+            $updateData = [
                 'status' => $newStatus,
             ];
 
             if ($newStatus === 'paid') {
-                $data['paid_at'] = now();
+                $updateData['paid_at'] = now();
 
                 if ($transactionId !== null) {
-                    $data['transaction_id'] = $transactionId;
+                    $updateData['transaction_id'] = $transactionId;
                 }
             }
 
             if ($newStatus === 'refunded' && $transactionId !== null) {
-                $data['transaction_id'] = $transactionId;
+                $updateData['transaction_id'] = $transactionId;
             }
 
-            $payment->update($data);
+            $payment->update($updateData);
 
             return $payment->refresh()->load('booking');
         });

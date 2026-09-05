@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\LoginException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -78,6 +79,18 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message' => 'You are not authorized to perform this action.',
                     'errors' => [],
                 ], 403);
+            }
+        });
+
+        $exceptions->render(function (
+            LoginException $e,
+            Request $request
+        ) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'message' => $e->getMessage(),
+                    'errors' => $e->getErrors(),
+                ], $e->getStatusCode());
             }
         });
 

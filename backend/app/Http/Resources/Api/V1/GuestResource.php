@@ -24,6 +24,7 @@ class GuestResource extends JsonResource
             'gender' => $this->gender,
             'date_of_birth' => $this->date_of_birth?->toDateString(),
             'country' => $this->country,
+            'photo_url' => $this->photo_url,
 
             'bookings_count' => $this->whenCounted('bookings'),
             'reviews_count' => $this->whenCounted('reviews'),

@@ -20,6 +20,7 @@ class RoomType extends Model
         'size',
         'bed_type',
         'image_url',
+        'image_public_id',
         'status',
     ];
 

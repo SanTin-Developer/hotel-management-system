@@ -18,6 +18,8 @@ class RegistrationOtp extends Model
         'expires_at',
         'verified_at',
         'attempts',
+        'photo_url',
+        'photo_public_id',
     ];
 
     protected $casts = [

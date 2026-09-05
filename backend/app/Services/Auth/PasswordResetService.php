@@ -4,6 +4,7 @@ namespace App\Services\Auth;
 
 use App\Mail\RegistrationOtpMail;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -40,10 +41,10 @@ class PasswordResetService
         $otp = (string) random_int(100000, 999999);
 
         cache()->put(
-            'password_reset:'.$email,
+            'password_reset:v2:'.$email,
             [
                 'otp_hash' => Hash::make($otp),
-                'expires_at' => now()->addMinutes(10),
+                'expires_at' => now()->addMinutes(10)->toIso8601String(),
                 'attempts' => 0,
             ],
             now()->addMinutes(10)
@@ -65,24 +66,34 @@ class PasswordResetService
     {
         $email = Str::lower(trim($email));
 
-        $data = cache()->get('password_reset:'.$email);
+        $data = cache()->get('password_reset:v2:'.$email);
 
-        if (! $data) {
+        if (! is_array($data) || ! isset($data['expires_at'], $data['otp_hash'])) {
             throw ValidationException::withMessages([
                 'email' => 'No reset request found. Please request a new one.',
             ]);
         }
 
-        if (now()->isAfter($data['expires_at'])) {
-            cache()->forget('password_reset:'.$email);
+        try {
+            $expiresAt = Carbon::parse($data['expires_at']);
+        } catch (\Throwable) {
+            cache()->forget('password_reset:v2:'.$email);
 
             throw ValidationException::withMessages([
                 'otp' => 'The reset code has expired. Please request a new one.',
             ]);
         }
 
-        if ($data['attempts'] >= 5) {
-            cache()->forget('password_reset:'.$email);
+        if (now()->isAfter($expiresAt)) {
+            cache()->forget('password_reset:v2:'.$email);
+
+            throw ValidationException::withMessages([
+                'otp' => 'The reset code has expired. Please request a new one.',
+            ]);
+        }
+
+        if ((int) ($data['attempts'] ?? 0) >= 5) {
+            cache()->forget('password_reset:v2:'.$email);
 
             throw ValidationException::withMessages([
                 'otp' => 'Too many failed attempts. Please request a new code.',
@@ -90,10 +101,13 @@ class PasswordResetService
         }
 
         if (! Hash::check($otp, $data['otp_hash'])) {
-            $data['attempts']++;
             cache()->put(
-                'password_reset:'.$email,
-                $data,
+                'password_reset:v2:'.$email,
+                [
+                    'otp_hash' => $data['otp_hash'],
+                    'expires_at' => $data['expires_at'],
+                    'attempts' => (int) ($data['attempts'] ?? 0) + 1,
+                ],
                 now()->addMinutes(10)
             );
 
@@ -110,7 +124,7 @@ class PasswordResetService
             ]);
         });
 
-        cache()->forget('password_reset:'.$email);
+        cache()->forget('password_reset:v2:'.$email);
 
         return [
             'message' => 'Password has been reset successfully.',

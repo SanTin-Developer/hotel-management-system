@@ -4,11 +4,17 @@ namespace App\Services\Staff;
 
 use App\Models\Staff;
 use App\Models\User;
+use App\Services\Media\CloudinaryService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class StaffService
 {
+    public function __construct(
+        private readonly CloudinaryService $cloudinary
+    ) {}
     public function getAll(array $filters = [])
     {
         return Staff::query()
@@ -72,7 +78,7 @@ class StaffService
 
             return Staff::create([
                 'user_id' => $user->id,
-                'employee_id' => $data['employee_id'],
+                'employee_id' => $data['employee_id'] ?? $this->generateEmployeeId(),
                 'position' => $data['position'],
                 'hire_date' => $data['hire_date'],
                 'status' => $data['status'] ?? 'active',
@@ -126,5 +132,55 @@ class StaffService
         DB::transaction(function () use ($staff) {
             $staff->delete();
         });
+    }
+
+    public function uploadPhoto(Staff $staff, UploadedFile $file): Staff
+    {
+        return DB::transaction(function () use ($staff, $file) {
+            $previous = $staff->photo_public_id;
+
+            $upload = $this->cloudinary->upload(
+                $file,
+                'hotel/staff'
+            );
+
+            $staff->update([
+                'photo_url' => $upload['secure_url'],
+                'photo_public_id' => $upload['public_id'],
+            ]);
+
+            if ($previous) {
+                $this->cloudinary->destroy($previous);
+            }
+
+            return $staff->refresh()->load('user:id,name,email,phone');
+        });
+    }
+
+    public function removePhoto(Staff $staff): Staff
+    {
+        return DB::transaction(function () use ($staff) {
+            $publicId = $staff->photo_public_id;
+
+            $staff->update([
+                'photo_url' => null,
+                'photo_public_id' => null,
+            ]);
+
+            if ($publicId) {
+                $this->cloudinary->destroy($publicId);
+            }
+
+            return $staff->refresh()->load('user:id,name,email,phone');
+        });
+    }
+
+    private function generateEmployeeId(): string
+    {
+        do {
+            $id = 'EMP-'.now()->format('Ymd').'-'.Str::upper(Str::random(4));
+        } while (Staff::where('employee_id', $id)->exists());
+
+        return $id;
     }
 }

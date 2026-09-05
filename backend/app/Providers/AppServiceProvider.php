@@ -64,5 +64,15 @@ class AppServiceProvider extends ServiceProvider
                     ?? $request->ip()
                 );
         });
+
+        RateLimiter::for('availability', function (Request $request) {
+            return Limit::perMinute(30)
+                ->by($request->ip());
+        });
+
+        RateLimiter::for('public-api', function (Request $request) {
+            return Limit::perMinute(60)
+                ->by($request->ip());
+        });
     }
 }

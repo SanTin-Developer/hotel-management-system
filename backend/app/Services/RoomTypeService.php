@@ -3,10 +3,16 @@
 namespace App\Services;
 
 use App\Models\RoomType;
+use App\Services\Media\CloudinaryService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 class RoomTypeService
 {
+    public function __construct(
+        private readonly CloudinaryService $cloudinary
+    ) {}
+
     public function getAll(array $filters = [])
     {
         return RoomType::query()
@@ -60,6 +66,47 @@ class RoomTypeService
     {
         DB::transaction(function () use ($roomType) {
             $roomType->delete();
+        });
+    }
+
+    public function uploadImage(RoomType $roomType, UploadedFile $file): RoomType
+    {
+        return DB::transaction(function () use ($roomType, $file) {
+            $previous = $roomType->image_public_id;
+
+            $upload = $this->cloudinary->upload(
+                $file,
+                'hotel/room-types'
+            );
+
+            $roomType->update([
+                'image_url' => $upload['secure_url'],
+                'image_public_id' => $upload['public_id'],
+            ]);
+
+            if ($previous) {
+                $this->cloudinary->destroy($previous);
+            }
+
+            return $roomType->refresh()->loadCount('rooms');
+        });
+    }
+
+    public function removeImage(RoomType $roomType): RoomType
+    {
+        return DB::transaction(function () use ($roomType) {
+            $publicId = $roomType->image_public_id;
+
+            $roomType->update([
+                'image_url' => null,
+                'image_public_id' => null,
+            ]);
+
+            if ($publicId) {
+                $this->cloudinary->destroy($publicId);
+            }
+
+            return $roomType->refresh()->loadCount('rooms');
         });
     }
 }

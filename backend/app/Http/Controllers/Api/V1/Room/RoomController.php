@@ -7,6 +7,7 @@ use App\Http\Requests\Api\V1\Room\IndexRoomRequest;
 use App\Http\Requests\Api\V1\Room\StoreRoomRequest;
 use App\Http\Requests\Api\V1\Room\SyncRoomAmenitiesRequest;
 use App\Http\Requests\Api\V1\Room\UpdateRoomRequest;
+use App\Http\Requests\Api\V1\Room\UploadRoomImageRequest;
 use App\Http\Resources\Api\V1\RoomResource;
 use App\Models\Room;
 use App\Services\Room\RoomService;
@@ -110,6 +111,25 @@ class RoomController extends Controller
             $room,
             $amenity
         );
+
+        return new RoomResource($room);
+    }
+
+    public function uploadImage(
+        UploadRoomImageRequest $request,
+        Room $room
+    ): RoomResource {
+        $room = $this->roomService->uploadImage(
+            $room,
+            $request->file('image')
+        );
+
+        return new RoomResource($room);
+    }
+
+    public function removeImage(Room $room): RoomResource
+    {
+        $room = $this->roomService->removeImage($room);
 
         return new RoomResource($room);
     }

@@ -40,6 +40,21 @@ class BookingController extends Controller
         return RoomResource::collection($rooms);
     }
 
+    public function availabilityCalendar(
+        RoomAvailabilityRequest $request
+    ): JsonResponse {
+        $calendar = $this->bookingService->getAvailabilityCalendar(
+            $request->validated('check_in'),
+            $request->validated('check_out')
+        );
+
+        return response()->json([
+            'check_in' => $request->validated('check_in'),
+            'check_out' => $request->validated('check_out'),
+            'rooms' => $calendar,
+        ]);
+    }
+
     public function store(StoreBookingRequest $request): JsonResponse
     {
         $booking = $this->bookingService->create(

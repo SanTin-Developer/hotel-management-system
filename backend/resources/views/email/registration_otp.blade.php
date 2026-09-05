@@ -4,18 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Your Email</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body style="
     margin: 0;
     padding: 0;
-    background-color: #f4f6f8;
-    font-family: Arial, Helvetica, sans-serif;
-    color: #333333;
+    background-color: #F8F9F4;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #1E2B22;
 ">
 
     <table width="100%" cellpadding="0" cellspacing="0" border="0"
-           style="background-color: #f4f6f8; padding: 40px 15px;">
+           style="background-color: #F8F9F4; padding: 40px 15px;">
         <tr>
             <td align="center">
 
@@ -24,33 +28,46 @@
                        style="
                             max-width: 600px;
                             width: 100%;
-                            background-color: #ffffff;
-                            border-radius: 12px;
+                            background-color: #FFFFFF;
+                            border: 1px solid #DCE3D5;
+                            border-radius: 14px;
                             overflow: hidden;
-                            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                            box-shadow: 0 8px 24px rgba(30, 43, 34, 0.06);
                        ">
 
                     <!-- Header -->
                     <tr>
                         <td align="center"
                             style="
-                                background-color: #0f3d3e;
-                                padding: 35px 30px;
+                                background-color: #16261F;
+                                padding: 34px 30px;
                             ">
 
+                            <img src="https://res.cloudinary.com/drercy9vt/image/upload/v1788588116/Gemini_Generated_Image_m6go6vm6go6vm6go-removebg-preview_guzd4n.png"
+                                 alt="Kampuchea Otel"
+                                 width="44"
+                                 height="44"
+                                 style="
+                                    display: block;
+                                    margin: 0 auto 12px;
+                                    border-radius: 10px;
+                                    border: 1px solid rgba(157, 190, 124, 0.5);
+                                 ">
+
                             <div style="
-                                font-size: 28px;
-                                font-weight: bold;
-                                color: #ffffff;
-                                letter-spacing: 1px;
+                                font-family: Georgia, 'Times New Roman', serif;
+                                font-weight: 600;
+                                font-size: 26px;
+                                color: #F2F5EC;
+                                letter-spacing: 0.5px;
                             ">
-                                HOTEL
+                                Kampuchea Otel
                             </div>
 
                             <div style="
                                 margin-top: 8px;
-                                font-size: 13px;
-                                color: #d4af37;
+                                font-size: 11px;
+                                color: #7FA35C;
                                 letter-spacing: 3px;
                                 text-transform: uppercase;
                             ">
@@ -62,37 +79,39 @@
 
                     <!-- Content -->
                     <tr>
-                        <td style="padding: 40px 45px 30px;">
+                        <td style="padding: 38px 45px 28px;">
 
                             <h2 style="
                                 margin: 0 0 20px;
-                                color: #0f3d3e;
-                                font-size: 26px;
+                                color: #16261F;
+                                font-family: Georgia, 'Times New Roman', serif;
+                                font-weight: 600;
+                                font-size: 24px;
                                 text-align: center;
                             ">
                                 Verify Your Email
                             </h2>
 
                             <p style="
-                                margin: 0 0 18px;
-                                font-size: 16px;
+                                margin: 0 0 16px;
+                                font-size: 15px;
                                 line-height: 1.7;
-                                color: #555555;
+                                color: #5E6B5A;
                             ">
-                                Hello <strong style="color: #0f3d3e;">
+                                Hello <strong style="color: #1E2B22;">
                                     {{ $fullName }}
                                 </strong>,
                             </p>
 
                             <p style="
-                                margin: 0 0 18px;
-                                font-size: 15px;
+                                margin: 0 0 22px;
+                                font-size: 14px;
                                 line-height: 1.7;
-                                color: #666666;
+                                color: #5E6B5A;
                             ">
-                                Thank you for registering with our hotel.
-                                Please use the verification code below to
-                                confirm your email address.
+                                Thank you for using&nbsp;
+                                <strong style="color: #16261F;">Kampuchea Otel</strong>.
+                                Please use the verification code below to continue.
                             </p>
 
                             <!-- OTP Box -->
@@ -100,15 +119,15 @@
                                 <tr>
                                     <td align="center"
                                         style="
-                                            padding: 25px 20px;
-                                            background-color: #f8f6ef;
-                                            border: 1px solid #eadfbf;
-                                            border-radius: 10px;
+                                            padding: 24px 20px;
+                                            background-color: #F1F3ED;
+                                            border: 1px solid #DCE3D5;
+                                            border-radius: 12px;
                                         ">
 
                                         <div style="
-                                            font-size: 12px;
-                                            color: #888888;
+                                            font-size: 11px;
+                                            color: #7A8677;
                                             text-transform: uppercase;
                                             letter-spacing: 2px;
                                             margin-bottom: 12px;
@@ -117,10 +136,11 @@
                                         </div>
 
                                         <div style="
-                                            font-size: 38px;
-                                            font-weight: bold;
+                                            font-family: Georgia, 'Times New Roman', serif;
+                                            font-size: 36px;
+                                            font-weight: 600;
                                             letter-spacing: 10px;
-                                            color: #0f3d3e;
+                                            color: #16261F;
                                             margin-left: 10px;
                                         ">
                                             {{ $otp }}
@@ -134,22 +154,23 @@
                             <p style="
                                 margin: 22px 0 8px;
                                 text-align: center;
-                                font-size: 14px;
-                                color: #777777;
+                                font-size: 13px;
+                                color: #7A8677;
                             ">
                                 This verification code will expire in
-                                <strong style="color: #0f3d3e;">
+                                <strong style="color: #4F7A3B;">
                                     10 minutes
                                 </strong>.
                             </p>
 
                             <!-- Security Notice -->
                             <table width="100%" cellpadding="0" cellspacing="0" border="0"
-                                   style="margin-top: 25px;">
+                                   style="margin-top: 26px;">
                                 <tr>
                                     <td style="
-                                        background-color: #fff8e6;
-                                        border-left: 4px solid #d4af37;
+                                        background-color: #EEF1E9;
+                                        border-left: 4px solid #7FA35C;
+                                        border-radius: 8px;
                                         padding: 14px 16px;
                                     ">
 
@@ -157,9 +178,9 @@
                                             margin: 0;
                                             font-size: 13px;
                                             line-height: 1.6;
-                                            color: #6b5a2a;
+                                            color: #4F7A3B;
                                         ">
-                                            <strong>Security notice:</strong>
+                                            <strong style="color: #16261F;">Security notice:</strong>
                                             Never share this verification code
                                             with anyone. Our hotel team will
                                             never ask you for your OTP.
@@ -170,14 +191,14 @@
                             </table>
 
                             <p style="
-                                margin: 30px 0 0;
-                                font-size: 15px;
+                                margin: 28px 0 0;
+                                font-size: 14px;
                                 line-height: 1.7;
-                                color: #555555;
+                                color: #5E6B5A;
                             ">
                                 Regards,<br>
-                                <strong style="color: #0f3d3e;">
-                                    Hotel Management Team
+                                <strong style="color: #16261F;">
+                                    Kampuchea Otel Team
                                 </strong>
                             </p>
 
@@ -188,15 +209,15 @@
                     <tr>
                         <td align="center"
                             style="
-                                background-color: #f8f9fa;
-                                padding: 25px 30px;
-                                border-top: 1px solid #eeeeee;
+                                background-color: #F1F3ED;
+                                padding: 22px 30px;
+                                border-top: 1px solid #DCE3D5;
                             ">
 
                             <p style="
-                                margin: 0 0 8px;
+                                margin: 0 0 6px;
                                 font-size: 12px;
-                                color: #999999;
+                                color: #7A8677;
                             ">
                                 This is an automated email. Please do not reply.
                             </p>
@@ -204,9 +225,9 @@
                             <p style="
                                 margin: 0;
                                 font-size: 12px;
-                                color: #aaaaaa;
+                                color: #A8B39F;
                             ">
-                                &copy; {{ date('Y') }} Hotel Management System.
+                                &copy; {{ date('Y') }} Kampuchea Otel.
                                 All rights reserved.
                             </p>
 

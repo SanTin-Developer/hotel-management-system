@@ -18,6 +18,8 @@ class Room extends Model
         'floor',
         'status',
         'description',
+        'image_url',
+        'image_public_id',
     ];
 
     protected function casts(): array

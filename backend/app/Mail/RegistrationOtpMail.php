@@ -18,7 +18,7 @@ class RegistrationOtpMail extends Mailable
     public function build()
     {
         return $this
-            ->subject('Your Registration OTP')
+            ->subject('Your Kampuchea Otel Verification Code')
             ->view('email.registration_otp');
     }
 }

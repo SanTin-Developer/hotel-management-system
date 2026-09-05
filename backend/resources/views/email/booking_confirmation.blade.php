@@ -173,7 +173,7 @@
 
         <p>
             Best regards,<br>
-            <strong>Hotel Management System</strong>
+            <strong>Kampuchea Otel Team</strong>
         </p>
 
     </div>

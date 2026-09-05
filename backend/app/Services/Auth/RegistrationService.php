@@ -6,6 +6,8 @@ use App\Mail\RegistrationOtpMail;
 use App\Models\Guest;
 use App\Models\RegistrationOtp;
 use App\Models\User;
+use App\Services\Media\CloudinaryService;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -15,9 +17,27 @@ use Illuminate\Validation\ValidationException;
 
 class RegistrationService
 {
+    public function __construct(
+        private readonly CloudinaryService $cloudinary
+    ) {}
+
     public function createRegistration(array $data): RegistrationOtp
     {
         $email = Str::lower(trim($data['email']));
+        $photo = $data['photo'] ?? null;
+
+        $photoUrl = null;
+        $photoPublicId = null;
+
+        if ($photo instanceof UploadedFile) {
+            $upload = $this->cloudinary->upload(
+                $photo,
+                'hotel/guests'
+            );
+
+            $photoUrl = $upload['secure_url'];
+            $photoPublicId = $upload['public_id'];
+        }
 
         // Allow only limited OTP generation attempts.
         RateLimiter::hit(
@@ -41,6 +61,9 @@ class RegistrationService
 
                 // Store password Hash
                 'password' => Hash::make($data['password']),
+
+                'photo_url' => $photoUrl,
+                'photo_public_id' => $photoPublicId,
 
                 // Never store the raw OTP. *Important: The raw OTP is not Stored in the database for security reasons.*
                 'otp_hash' => Hash::make($opt),
@@ -193,6 +216,8 @@ class RegistrationService
                 'country' => $registration->country,
                 'id_type' => $registration->id_type,
                 'id_number' => $registration->id_number,
+                'photo_url' => $registration->photo_url,
+                'photo_public_id' => $registration->photo_public_id,
             ]);
 
             $registration->update([

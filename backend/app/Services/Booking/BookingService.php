@@ -2,11 +2,15 @@
 
 namespace App\Services\Booking;
 
+use App\DTOs\Booking\CreateBookingData;
 use App\Jobs\SendBookingConfirmationEmail;
+use App\Jobs\SendBookingStatusEmail;
 use App\Models\Booking;
 use App\Models\BookingItem;
 use App\Models\BookingStatusHistory;
 use App\Models\Room;
+use App\Repositories\BookingRepository;
+use App\Services\Coupon\CouponService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -15,114 +19,50 @@ use Illuminate\Validation\ValidationException;
 
 class BookingService
 {
+    public function __construct(
+        private readonly BookingRepository $bookingRepository,
+        private readonly AvailabilityService $availabilityService,
+        private readonly BookingPriceService $priceService,
+        private readonly CouponService $couponService,
+    ) {}
+
     public function getAll(array $filters = [])
     {
-        return Booking::query()
-            ->with([
-                'guest:id,full_name,email,phone',
-                'rooms:id,room_number',
-                'bookingItems.room:id,room_number',
-            ])
-            ->when(
-                ! empty($filters['search']),
-                function ($query) use ($filters) {
-                    $search = $filters['search'];
-
-                    $query->where(function ($query) use ($search) {
-                        $query
-                            ->where('booking_code', 'ILIKE', "%{$search}%")
-                            ->orWhereHas('guest', function ($query) use ($search) {
-                                $query
-                                    ->where('full_name', 'ILIKE', "%{$search}%")
-                                    ->orWhere('email', 'ILIKE', "%{$search}%")
-                                    ->orWhere('phone', 'ILIKE', "%{$search}%");
-                            });
-                    });
-                }
-            )
-            ->when(
-                ! empty($filters['status']),
-                fn ($query) => $query->where(
-                    'status',
-                    $filters['status']
-                )
-            )
-            ->when(
-                ! empty($filters['guest_id']),
-                fn ($query) => $query->where(
-                    'guest_id',
-                    $filters['guest_id']
-                )
-            )
-            ->when(
-                ! empty($filters['check_in']),
-                fn ($query) => $query->whereDate(
-                    'check_in',
-                    '>=',
-                    $filters['check_in']
-                )
-            )
-            ->when(
-                ! empty($filters['check_out']),
-                fn ($query) => $query->whereDate(
-                    'check_out',
-                    '<=',
-                    $filters['check_out']
-                )
-            )
-            ->latest('created_at')
-            ->paginate($filters['per_page'] ?? 20);
+        return $this->bookingRepository->getAll($filters);
     }
 
     public function getAvailableRooms(
         string $checkIn,
         string $checkOut
     ): Collection {
-        $activeStatuses = [
-            'pending',
-            'confirmed',
-        ];
-
-        return Room::query()
-            ->with([
-                'roomType',
-                'amenities',
-            ])
-            ->withCount('bookingItems')
-            ->where('status', 'available')
-            ->whereDoesntHave('bookingItems.booking', function ($query) use (
-                $checkIn,
-                $checkOut,
-                $activeStatuses
-            ) {
-                $query
-                    ->whereIn('status', $activeStatuses)
-                    ->where('check_in', '<', $checkOut)
-                    ->where('check_out', '>', $checkIn);
-            })
-            ->orderBy('room_number')
-            ->get();
+        return $this->availabilityService->getAvailableRooms(
+            $checkIn,
+            $checkOut
+        );
     }
 
-    /**
-     * Create a booking safely against concurrent requests.
-     */
+    public function getAvailabilityCalendar(
+        string $checkIn,
+        string $checkOut
+    ): Collection {
+        return $this->availabilityService->getAvailabilityCalendar(
+            $checkIn,
+            $checkOut
+        );
+    }
+
     public function create(array $data): Booking
     {
-        return DB::transaction(function () use ($data) {
-            $roomIds = collect($data['room_ids'])
+        $dto = CreateBookingData::fromArray($data);
+
+        return DB::transaction(function () use ($dto) {
+            $roomIds = collect($dto->roomIds)
                 ->map(fn ($id) => (int) $id)
                 ->unique()
                 ->sort()
                 ->values()
                 ->all();
 
-            /*
-             * Lock the selected room rows.
-             *
-             * Sorting IDs before locking helps ensure concurrent
-             * transactions acquire locks in the same order.
-             */
             $rooms = Room::query()
                 ->with('roomType')
                 ->whereIn('id', $roomIds)
@@ -136,9 +76,6 @@ class BookingService
                 ]);
             }
 
-            /*
-             * Rooms must currently be bookable.
-             */
             $unavailableRooms = $rooms
                 ->filter(fn (Room $room) => $room->status !== 'available');
 
@@ -148,32 +85,11 @@ class BookingService
                 ]);
             }
 
-            /*
-             * Re-check overlapping bookings while the room rows
-             * are locked.
-             *
-             * This is the important second availability check.
-             */
-            $hasOverlap = BookingItem::query()
-                ->whereIn('room_id', $roomIds)
-                ->whereHas('booking', function ($query) use ($data) {
-                    $query
-                        ->whereIn('status', [
-                            'pending',
-                            'confirmed',
-                        ])
-                        ->where(
-                            'check_in',
-                            '<',
-                            $data['check_out']
-                        )
-                        ->where(
-                            'check_out',
-                            '>',
-                            $data['check_in']
-                        );
-                })
-                ->exists();
+            $hasOverlap = $this->availabilityService->checkOverlap(
+                $roomIds,
+                $dto->checkIn,
+                $dto->checkOut
+            );
 
             if ($hasOverlap) {
                 throw ValidationException::withMessages([
@@ -181,42 +97,57 @@ class BookingService
                 ]);
             }
 
-            $checkIn = Carbon::parse($data['check_in']);
-            $checkOut = Carbon::parse($data['check_out']);
-
+            $checkIn = Carbon::parse($dto->checkIn);
+            $checkOut = Carbon::parse($dto->checkOut);
             $nights = $checkIn->diffInDays($checkOut);
 
-            /*
-             * Calculate the total on the backend.
-             */
-            $totalAmount = $rooms->sum(
-                fn (Room $room) => (float) $room->roomType->base_price * $nights
+            $baseTotal = $this->priceService->calculateBaseTotal(
+                $rooms,
+                $nights
+            );
+
+            $couponResult = null;
+
+            if ($dto->couponId) {
+                $couponResult = $this->couponService->apply(
+                    $dto->couponId,
+                    $baseTotal
+                );
+            }
+
+            $totalAmount = $this->priceService->calculateFinalTotal(
+                $baseTotal,
+                $couponResult
             );
 
             $booking = Booking::create([
                 'booking_code' => $this->generateBookingCode(),
-                'guest_id' => $data['guest_id'],
-                'check_in' => $data['check_in'],
-                'check_out' => $data['check_out'],
-                'adults' => $data['adults'],
-                'children' => $data['children'] ?? 0,
+                'guest_id' => $dto->guestId,
+                'check_in' => $dto->checkIn,
+                'check_out' => $dto->checkOut,
+                'adults' => $dto->adults,
+                'children' => $dto->children,
                 'total_amount' => $totalAmount,
-                'booking_source' => $data['booking_source'] ?? 'website',
-                'created_by' => $data['created_by'] ?? null,
+                'booking_source' => $dto->bookingSource,
+                'created_by' => $dto->createdBy,
                 'status' => 'pending',
-                'special_request' => $data['special_request'] ?? null,
+                'special_request' => $dto->specialRequest,
+                'coupon_id' => $dto->couponId,
             ]);
 
             BookingStatusHistory::create([
                 'booking_id' => $booking->id,
                 'status' => 'pending',
-                'changed_by' => $data['created_by'] ?? null,
+                'changed_by' => $dto->createdBy,
                 'note' => 'Booking created.',
             ]);
 
             foreach ($rooms as $room) {
                 $pricePerNight = (float) $room->roomType->base_price;
-                $subtotal = $pricePerNight * $nights;
+                $subtotal = $this->priceService->calculateRoomSubtotal(
+                    $pricePerNight,
+                    $nights
+                );
 
                 BookingItem::create([
                     'booking_id' => $booking->id,
@@ -232,13 +163,13 @@ class BookingService
                 'guest',
                 'rooms.roomType',
                 'bookingItems.room',
+                'coupon',
             ]);
 
             SendBookingConfirmationEmail::dispatch($booking->id)
                 ->afterCommit();
 
             return $booking;
-
         });
     }
 
@@ -340,13 +271,19 @@ class BookingService
                 'note' => $note,
             ]);
 
+            SendBookingStatusEmail::dispatch(
+                $booking->id,
+                $newStatus,
+                $note
+            )->afterCommit();
+
             return $booking->refresh()->load([
                 'guest',
                 'rooms.roomType',
                 'bookingItems.room',
                 'statusHistories.changedBy',
+                'coupon',
             ]);
-
         });
     }
 

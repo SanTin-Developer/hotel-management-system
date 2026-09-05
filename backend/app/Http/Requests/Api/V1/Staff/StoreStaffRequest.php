@@ -48,7 +48,7 @@ class StoreStaffRequest extends FormRequest
             ],
 
             'employee_id' => [
-                'required',
+                'nullable',
                 'string',
                 'max:50',
                 'unique:staff,employee_id',
@@ -83,7 +83,6 @@ class StoreStaffRequest extends FormRequest
             'email.unique' => 'A user with this email already exists.',
             'password.required' => 'Password is required.',
             'password.min' => 'Password must be at least 8 characters.',
-            'employee_id.required' => 'Employee ID is required.',
             'employee_id.unique' => 'This employee ID is already in use.',
             'position.required' => 'Position is required.',
             'hire_date.required' => 'Hire date is required.',

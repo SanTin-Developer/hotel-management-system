@@ -18,6 +18,7 @@ class StaffResource extends JsonResource
             'employee_id' => $this->employee_id,
             'position' => $this->position,
             'hire_date' => $this->hire_date?->toDateString(),
+            'photo_url' => $this->photo_url,
             'status' => $this->status,
 
             'user' => $this->whenLoaded(

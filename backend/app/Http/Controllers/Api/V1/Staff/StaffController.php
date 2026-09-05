@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Staff\IndexStaffRequest;
 use App\Http\Requests\Api\V1\Staff\StoreStaffRequest;
 use App\Http\Requests\Api\V1\Staff\UpdateStaffRequest;
+use App\Http\Requests\Api\V1\Staff\UploadStaffPhotoRequest;
 use App\Http\Resources\Api\V1\StaffResource;
 use App\Models\Staff;
 use App\Services\Staff\StaffService;
@@ -65,5 +66,24 @@ class StaffController extends Controller
         return response()->json([
             'message' => 'Staff member deleted successfully.',
         ]);
+    }
+
+    public function uploadPhoto(
+        UploadStaffPhotoRequest $request,
+        Staff $staff
+    ): StaffResource {
+        $staff = $this->staffService->uploadPhoto(
+            $staff,
+            $request->file('photo')
+        );
+
+        return new StaffResource($staff);
+    }
+
+    public function removePhoto(Staff $staff): StaffResource
+    {
+        $staff = $this->staffService->removePhoto($staff);
+
+        return new StaffResource($staff);
     }
 }

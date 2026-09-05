@@ -58,6 +58,13 @@ class RegisterRequest extends FormRequest
                 'min:8',
                 'confirmed',
             ],
+
+            'photo' => [
+                'nullable',
+                'image',
+                'mimes:jpeg,png,webp,gif',
+                'max:5120',
+            ],
         ];
     }
 
