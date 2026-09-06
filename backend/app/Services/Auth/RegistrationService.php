@@ -229,7 +229,7 @@ class RegistrationService
             $registration->delete();
 
             return [
-                'user' => $user->load('roles'),
+                'user' => $user->load('roles', 'guest'),
                 'token' => $token,
             ];
         });

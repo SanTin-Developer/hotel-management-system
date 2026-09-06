@@ -6,8 +6,11 @@ import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
 import DataTable from "@/components/DataTable";
 import SearchInput from "@/components/SearchInput";
+import DebouncedInput from "@/components/DebouncedInput";
+import useUrlQuerySearch from "@/hooks/useUrlQuerySearch";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import DetailModal from "@/components/DetailModal";
 import FormModal, { FormActions } from "@/components/FormModal";
 import { LoadingState, ErrorState } from "@/components/States";
 import { TextField, SelectField, DateField, TextAreaField } from "@/components/form/Inputs";
@@ -197,11 +200,12 @@ function GuestForm({ guest, onSuccess }) {
 export default function GuestsPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useUrlQuerySearch();
   const [country, setCountry] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [detail, setDetail] = useState(null);
 
   const query = useQuery({
     queryKey: ["guests", page, search, country],
@@ -337,10 +341,10 @@ export default function GuestsPage() {
           }}
           placeholder="Search guests…"
         />
-        <input
+        <DebouncedInput
           value={country}
-          onChange={(e) => {
-            setCountry(e.target.value);
+          onChange={(v) => {
+            setCountry(v);
             setPage(1);
           }}
           placeholder="Filter by country"
@@ -371,6 +375,8 @@ export default function GuestsPage() {
             loading={query.isLoading}
             emptyTitle="No guests found"
             emptyDescription="Try adjusting your filters, or add a new guest."
+            onRowDoubleClick={setDetail}
+            minWidth={1180}
           />
           <div className="mt-3 rounded-xl border border-[#DCE3D5] bg-white">
             <Pagination
@@ -409,6 +415,14 @@ export default function GuestsPage() {
         confirmLabel="Delete guest"
         loading={deleteMutation.isPending}
         onConfirm={() => deleting && deleteMutation.mutate(deleting.id)}
+      />
+
+      <DetailModal
+        open={Boolean(detail)}
+        onOpenChange={(open) => !open && setDetail(null)}
+        title={detail ? detail.full_name : "Guest details"}
+        description="Double-click a guest row to view their full record."
+        record={detail}
       />
     </div>
   );

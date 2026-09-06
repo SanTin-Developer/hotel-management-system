@@ -8,6 +8,7 @@ use App\Jobs\SendBookingStatusEmail;
 use App\Models\Booking;
 use App\Models\BookingItem;
 use App\Models\BookingStatusHistory;
+use App\Models\Guest;
 use App\Models\Room;
 use App\Repositories\BookingRepository;
 use App\Services\Coupon\CouponService;
@@ -120,6 +121,17 @@ class BookingService
                 $couponResult
             );
 
+            $guest = Guest::query()->whereKey($dto->guestId)->first();
+
+            if (! $guest) {
+                throw ValidationException::withMessages([
+                    'guest_id' => 'The selected guest does not exist.',
+                ]);
+            }
+
+            $depositRate = $this->depositRateForGuest($guest);
+            $depositAmount = round($totalAmount * $depositRate / 100, 2);
+
             $booking = Booking::create([
                 'booking_code' => $this->generateBookingCode(),
                 'guest_id' => $dto->guestId,
@@ -128,6 +140,8 @@ class BookingService
                 'adults' => $dto->adults,
                 'children' => $dto->children,
                 'total_amount' => $totalAmount,
+                'deposit_rate' => $depositRate,
+                'deposit_amount' => $depositAmount,
                 'booking_source' => $dto->bookingSource,
                 'created_by' => $dto->createdBy,
                 'status' => 'pending',
@@ -299,5 +313,21 @@ class BookingService
         );
 
         return $code;
+    }
+
+    private function depositRateForGuest(Guest $guest): float
+    {
+        $country = strtolower(
+            trim((string) ($guest->country ?? $guest->nationality ?? ''))
+        );
+
+        if (
+            str_contains($country, 'cambodia')
+            || str_contains($country, 'khmer')
+        ) {
+            return 20.0;
+        }
+
+        return 30.0;
     }
 }

@@ -75,6 +75,7 @@ export default function LoginPage() {
             <img
               src={SLIDES[slideIndex].src}
               alt={SLIDES[slideIndex].alt}
+              loading="lazy"
               className="h-full w-full object-cover"
             />
           </motion.div>

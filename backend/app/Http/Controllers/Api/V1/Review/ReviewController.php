@@ -18,6 +18,24 @@ class ReviewController extends Controller
         private readonly ReviewService $reviewService
     ) {}
 
+    /**
+     * Public endpoint: returns only approved reviews for the website.
+     */
+    public function approved(): AnonymousResourceCollection
+    {
+        return ReviewResource::collection(
+            Review::query()
+                ->with([
+                    'guest:id,full_name,email',
+                    'booking:id,booking_code',
+                ])
+                ->where('status', 'approved')
+                ->orderByDesc('created_at')
+                ->limit(12)
+                ->get()
+        );
+    }
+
     public function index(
         IndexReviewRequest $request
     ): AnonymousResourceCollection {

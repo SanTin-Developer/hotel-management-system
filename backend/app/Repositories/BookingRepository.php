@@ -18,8 +18,10 @@ class BookingRepository
         return Booking::query()
             ->with([
                 'guest:id,full_name,email,phone',
-                'rooms:id,room_number',
-                'bookingItems.room:id,room_number',
+                'rooms:id,room_number,room_type_id,floor,status',
+                'rooms.roomType:id,name,base_price',
+                'bookingItems.room:id,room_number,room_type_id',
+                'bookingItems.room.roomType:id,name,base_price',
             ])
             ->when(
                 ! empty($filters['search']),

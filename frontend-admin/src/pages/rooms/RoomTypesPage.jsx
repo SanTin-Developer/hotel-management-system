@@ -9,6 +9,7 @@ import SearchInput from "@/components/SearchInput";
 import StatusBadge from "@/components/StatusBadge";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import DetailModal from "@/components/DetailModal";
 import FormModal, { FormActions } from "@/components/FormModal";
 import { LoadingState, ErrorState } from "@/components/States";
 import { TextField, SelectField, TextAreaField, ImageField } from "@/components/form/Inputs";
@@ -25,6 +26,16 @@ import { getErrorMessage, formatCurrency } from "@/lib/format";
 const STATUSES = [
   ["active", "Active"],
   ["inactive", "Inactive"],
+];
+
+const BED_TYPES = [
+  ["single", "Single"],
+  ["double", "Double"],
+  ["queen", "Queen"],
+  ["king", "King"],
+  ["twin", "Twin"],
+  ["bunk", "Bunk"],
+  ["sofa", "Sofa"],
 ];
 
 const EMPTY_FORM = {
@@ -146,12 +157,13 @@ function RoomTypeForm({ roomType, onSuccess }) {
           inputMode="decimal"
           placeholder="35.00"
         />
-        <TextField
+        <SelectField
           label="Bed type"
           name="bed_type"
           value={form.bed_type}
           onChange={(v) => set("bed_type", v)}
-          placeholder="King"
+          options={BED_TYPES}
+          placeholder="Select a bed type"
         />
         <SelectField
           label="Status"
@@ -203,6 +215,7 @@ export default function RoomTypesPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [detail, setDetail] = useState(null);
 
   const query = useQuery({
     queryKey: ["room-types", page, search],
@@ -342,6 +355,8 @@ export default function RoomTypesPage() {
             loading={query.isLoading}
             emptyTitle="No room types found"
             emptyDescription="Add a room type to start categorising your rooms."
+            onRowDoubleClick={setDetail}
+            minWidth={1180}
           />
           <div className="mt-3 rounded-xl border border-[#DCE3D5] bg-white">
             <Pagination
@@ -380,6 +395,13 @@ export default function RoomTypesPage() {
         confirmLabel="Delete"
         loading={deleteMutation.isPending}
         onConfirm={() => deleting && deleteMutation.mutate(deleting.id)}
+      />
+
+      <DetailModal
+        open={Boolean(detail)}
+        onOpenChange={(open) => !open && setDetail(null)}
+        title={detail ? detail.name : "Room type details"}
+        record={detail}
       />
     </div>
   );

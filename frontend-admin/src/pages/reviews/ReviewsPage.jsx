@@ -9,6 +9,7 @@ import SearchInput from "@/components/SearchInput";
 import StatusBadge from "@/components/StatusBadge";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import DetailModal from "@/components/DetailModal";
 import { LoadingState, ErrorState, EmptyState } from "@/components/States";
 import { fetchReviews, approveReview, rejectReview } from "@/services/api/reviews";
 import { getErrorMessage, formatRelative, initialsOf } from "@/lib/format";
@@ -36,6 +37,7 @@ export default function ReviewsPage() {
   const [status, setStatus] = useState("");
   const [rating, setRating] = useState("");
   const [actionTarget, setActionTarget] = useState(null);
+  const [detail, setDetail] = useState(null);
 
   const query = useQuery({
     queryKey: ["reviews", page, search, status, rating],
@@ -190,6 +192,8 @@ export default function ReviewsPage() {
             data={items}
             loading={query.isLoading}
             emptyTitle="No reviews found"
+            onRowDoubleClick={setDetail}
+            minWidth={1180}
           />
           <div className="mt-3 rounded-xl border border-[#DCE3D5] bg-white">
             <Pagination
@@ -217,6 +221,13 @@ export default function ReviewsPage() {
         onConfirm={() =>
           actionTarget && mutation.mutate({ type: actionTarget.type, id: actionTarget.review.id })
         }
+      />
+
+      <DetailModal
+        open={Boolean(detail)}
+        onOpenChange={(open) => !open && setDetail(null)}
+        title={detail ? `Review by ${detail.guest?.full_name ?? "guest"}` : "Review details"}
+        record={detail}
       />
     </div>
   );

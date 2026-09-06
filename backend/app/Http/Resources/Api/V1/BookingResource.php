@@ -25,6 +25,8 @@ class BookingResource extends JsonResource
             'children' => $this->children,
 
             'total_amount' => $this->total_amount,
+            'deposit_rate' => $this->deposit_rate,
+            'deposit_amount' => $this->deposit_amount,
 
             'booking_source' => $this->booking_source,
             'status' => $this->status,

@@ -6,9 +6,11 @@ import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
 import DataTable from "@/components/DataTable";
 import SearchInput from "@/components/SearchInput";
+import useUrlQuerySearch from "@/hooks/useUrlQuerySearch";
 import StatusBadge from "@/components/StatusBadge";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import DetailModal from "@/components/DetailModal";
 import FormModal, { FormActions } from "@/components/FormModal";
 import { LoadingState, ErrorState } from "@/components/States";
 import { TextField, SelectField, DateField } from "@/components/form/Inputs";
@@ -182,12 +184,13 @@ function CouponForm({ coupon, onSuccess }) {
 export default function CouponsPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useUrlQuerySearch();
   const [status, setStatus] = useState("");
   const [type, setType] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [detail, setDetail] = useState(null);
 
   const query = useQuery({
     queryKey: ["coupons", page, search, status, type],
@@ -362,6 +365,8 @@ export default function CouponsPage() {
             loading={query.isLoading}
             emptyTitle="No coupons found"
             emptyDescription="Create a promo code to attract more bookings."
+            onRowDoubleClick={setDetail}
+            minWidth={1180}
           />
           <div className="mt-3 rounded-xl border border-[#DCE3D5] bg-white">
             <Pagination
@@ -400,6 +405,13 @@ export default function CouponsPage() {
         confirmLabel="Delete coupon"
         loading={deleteMutation.isPending}
         onConfirm={() => deleting && deleteMutation.mutate(deleting.id)}
+      />
+
+      <DetailModal
+        open={Boolean(detail)}
+        onOpenChange={(open) => !open && setDetail(null)}
+        title={detail ? `Coupon ${detail.code}` : "Coupon details"}
+        record={detail}
       />
     </div>
   );

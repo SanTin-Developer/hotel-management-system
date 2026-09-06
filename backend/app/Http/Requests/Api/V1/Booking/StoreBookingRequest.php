@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\V1\Booking;
 
 use App\Models\Guest;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
 class StoreBookingRequest extends FormRequest
@@ -72,6 +73,12 @@ class StoreBookingRequest extends FormRequest
                 'string',
                 'max:2000',
             ],
+
+            'booking_source' => [
+                'sometimes',
+                'string',
+                Rule::in(['website', 'phone', 'walk_in', 'third_party']),
+            ],
         ];
     }
 
@@ -105,6 +112,8 @@ class StoreBookingRequest extends FormRequest
             'coupon_id.exists' => 'The selected coupon does not exist.',
 
             'special_request.max' => 'Special request cannot exceed 2000 characters.',
+
+            'booking_source.in' => 'Booking type must be online or with receptionist.',
         ];
     }
 

@@ -8,6 +8,7 @@ import DashboardPage from "@/pages/dashboard/DashboardPage";
 import BookingsPage from "@/pages/bookings/BookingsPage";
 import RoomsPage from "@/pages/rooms/RoomsPage";
 import RoomTypesPage from "@/pages/rooms/RoomTypesPage";
+import AmenitiesPage from "@/pages/amenities/AmenitiesPage";
 import GuestsPage from "@/pages/guests/GuestsPage";
 import PaymentsPage from "@/pages/payments/PaymentsPage";
 import CouponsPage from "@/pages/coupons/CouponsPage";
@@ -35,6 +36,7 @@ const App = () => {
           <Route path="/bookings" element={<BookingsPage />} />
           <Route path="/rooms" element={<RoomsPage />} />
           <Route path="/rooms/types" element={<RoomTypesPage />} />
+          <Route path="/rooms/amenities" element={<AmenitiesPage />} />
           <Route path="/guests" element={<GuestsPage />} />
           <Route path="/payments" element={<PaymentsPage />} />
           <Route path="/coupons" element={<CouponsPage />} />

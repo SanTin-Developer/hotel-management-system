@@ -1,6 +1,30 @@
+import { useEffect, useState } from "react";
 import { Search, X } from "lucide-react";
 
-export default function SearchInput({ value, onChange, placeholder = "Search…", className = "" }) {
+export default function SearchInput({
+  value,
+  onChange,
+  placeholder = "Search…",
+  className = "",
+  debounce = 300,
+}) {
+  const [text, setText] = useState(value ?? "");
+  const [prevValue, setPrevValue] = useState(value);
+
+  if (prevValue !== value) {
+    setPrevValue(value);
+    setText(value ?? "");
+  }
+
+  useEffect(() => {
+    if (text === value) {
+      return;
+    }
+
+    const timer = setTimeout(() => onChange(text), debounce);
+    return () => clearTimeout(timer);
+  }, [text, debounce, onChange, value]);
+
   return (
     <div className={`relative ${className}`}>
       <Search
@@ -9,15 +33,18 @@ export default function SearchInput({ value, onChange, placeholder = "Search…"
       />
       <input
         type="search"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
         placeholder={placeholder}
         className="h-10 w-full min-w-0 rounded-lg border border-[#DCE3D5] bg-white pl-10 pr-9 text-sm text-[#1E2B22] outline-none transition-colors duration-200 placeholder:text-[#A8B39F] focus:border-[#7FA35C] focus:ring-4 focus:ring-[#7FA35C]/15 sm:w-64"
       />
-      {value && (
+      {text && (
         <button
           type="button"
-          onClick={() => onChange("")}
+          onClick={() => {
+            setText("");
+            onChange("");
+          }}
           aria-label="Clear search"
           className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-[#A8B39F] transition-colors hover:text-[#5E6B5A]"
         >

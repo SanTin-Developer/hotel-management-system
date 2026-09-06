@@ -41,7 +41,7 @@ class AuthService
         $token = $user->createToken('customer-auth')->plainTextToken;
 
         return [
-            'user' => $user->load('roles'),
+            'user' => $user->load('roles', 'guest'),
             'token' => $token,
         ];
     }
@@ -54,7 +54,7 @@ class AuthService
     public function me(User $user): array
     {
         return [
-            'user' => $user->load('roles'),
+            'user' => $user->load('roles', 'guest'),
         ];
     }
 }

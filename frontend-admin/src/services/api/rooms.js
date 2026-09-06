@@ -26,8 +26,3 @@ export const uploadRoomTypeImage = (id, file) => {
   return apiClient.post(`/room-types/${id}/image`, formData);
 };
 export const deleteRoomTypeImage = (id) => remove(`/room-types/${id}/image`);
-
-export const fetchAmenities = (params) => list("/amenities", params);
-export const createAmenity = (data) => create("/amenities", data);
-export const updateAmenity = (id, data) => update(`/amenities/${id}`, data);
-export const deleteAmenity = (id) => remove(`/amenities/${id}`);

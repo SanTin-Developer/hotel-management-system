@@ -9,10 +9,24 @@ import SearchInput from "@/components/SearchInput";
 import StatusBadge from "@/components/StatusBadge";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import DetailModal from "@/components/DetailModal";
 import FormModal, { FormActions } from "@/components/FormModal";
 import { LoadingState, ErrorState } from "@/components/States";
-import { TextField, SelectField, DateField, PasswordField, ImageField } from "@/components/form/Inputs";
-import { fetchStaff, createStaff, updateStaff, deleteStaff, uploadStaffPhoto, deleteStaffPhoto } from "@/services/api/staff";
+import {
+  TextField,
+  SelectField,
+  DateField,
+  PasswordField,
+  ImageField,
+} from "@/components/form/Inputs";
+import {
+  fetchStaff,
+  createStaff,
+  updateStaff,
+  deleteStaff,
+  uploadStaffPhoto,
+  deleteStaffPhoto,
+} from "@/services/api/staff";
 import { getErrorMessage, formatDate, initialsOf } from "@/lib/format";
 
 const ROLES = [
@@ -85,7 +99,8 @@ function StaffForm({ member, onSuccess }) {
       queryClient.invalidateQueries({ queryKey: ["staff"] });
       onSuccess();
     },
-    onError: (error) => toast.error(getErrorMessage(error, "Could not save staff member.")),
+    onError: (error) =>
+      toast.error(getErrorMessage(error, "Could not save staff member.")),
   });
 
   function set(field, value) {
@@ -97,7 +112,8 @@ function StaffForm({ member, onSuccess }) {
     e.preventDefault();
     const errs = {};
     if (!form.name.trim()) errs.name = "Name is required.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "Enter a valid email.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+      errs.email = "Enter a valid email.";
     if (!isEdit && form.password.length < 8) {
       errs.password = "Password must be at least 8 characters.";
     }
@@ -267,6 +283,7 @@ export default function StaffPage() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [detail, setDetail] = useState(null);
 
   const query = useQuery({
     queryKey: ["staff", page, search, status],
@@ -285,7 +302,8 @@ export default function StaffPage() {
       queryClient.invalidateQueries({ queryKey: ["staff"] });
       setDeleting(null);
     },
-    onError: (error) => toast.error(getErrorMessage(error, "Could not delete staff member.")),
+    onError: (error) =>
+      toast.error(getErrorMessage(error, "Could not delete staff member.")),
   });
 
   const columns = [
@@ -295,7 +313,12 @@ export default function StaffPage() {
         <div className="flex items-center gap-3">
           <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#16261F] text-sm font-semibold text-[#9DBE7C]">
             {r.photo_url ? (
-              <img src={r.photo_url} alt={r.user?.name} className="h-full w-full object-cover" />
+              <img
+                src={r.photo_url}
+                alt={r.user?.name}
+                loading="lazy"
+                className="h-full w-full object-cover"
+              />
             ) : (
               initialsOf(r.user?.name)
             )}
@@ -322,11 +345,15 @@ export default function StaffPage() {
     },
     {
       header: "Phone",
-      cell: (r) => <span className="text-[#5E6B5A]">{r.user?.phone ?? "—"}</span>,
+      cell: (r) => (
+        <span className="text-[#5E6B5A]">{r.user?.phone ?? "—"}</span>
+      ),
     },
     {
       header: "Hired",
-      cell: (r) => <span className="text-[#5E6B5A]">{formatDate(r.hire_date)}</span>,
+      cell: (r) => (
+        <span className="text-[#5E6B5A]">{formatDate(r.hire_date)}</span>
+      ),
     },
     {
       header: "Status",
@@ -362,7 +389,9 @@ export default function StaffPage() {
   ];
 
   if (query.isError) {
-    return <ErrorState message="Could not load staff." onRetry={query.refetch} />;
+    return (
+      <ErrorState message="Could not load staff." onRetry={query.refetch} />
+    );
   }
 
   const { items = [], meta = {} } = query.data ?? {};
@@ -423,6 +452,8 @@ export default function StaffPage() {
             loading={query.isLoading}
             emptyTitle="No staff found"
             emptyDescription="Invite your first team member to get started."
+            onRowDoubleClick={setDetail}
+            minWidth={1180}
           />
           <div className="mt-3 rounded-xl border border-[#DCE3D5] bg-white">
             <Pagination
@@ -441,8 +472,16 @@ export default function StaffPage() {
           setFormOpen(open);
           if (!open) setEditing(null);
         }}
-        title={editing ? `Edit ${editing.user?.name ?? "staff member"}` : "Invite a staff member"}
-        description={editing ? "Update role and details." : "Creates a login account for the new team member."}
+        title={
+          editing
+            ? `Edit ${editing.user?.name ?? "staff member"}`
+            : "Invite a staff member"
+        }
+        description={
+          editing
+            ? "Update role and details."
+            : "Creates a login account for the new team member."
+        }
       >
         <StaffForm
           key={editing?.id ?? "new"}
@@ -462,6 +501,13 @@ export default function StaffPage() {
         confirmLabel="Delete"
         loading={deleteMutation.isPending}
         onConfirm={() => deleting && deleteMutation.mutate(deleting.id)}
+      />
+
+      <DetailModal
+        open={Boolean(detail)}
+        onOpenChange={(open) => !open && setDetail(null)}
+        title={detail?.user?.name ?? "Staff details"}
+        record={detail}
       />
     </div>
   );

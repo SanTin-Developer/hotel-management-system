@@ -6,6 +6,7 @@ use App\DTOs\Payment\CreatePaymentData;
 use App\Models\Payment;
 use App\Repositories\PaymentRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class PaymentService
@@ -49,6 +50,10 @@ class PaymentService
                 }
             }
 
+            $transactionId = ! empty($dto->transactionId)
+                ? $dto->transactionId
+                : $this->generateTransactionId();
+
             $paidAmount = (float) $booking->payments
                 ->whereIn('status', ['pending', 'paid'])
                 ->sum('amount');
@@ -77,7 +82,7 @@ class PaymentService
                 'booking_id' => $booking->id,
                 'amount' => $paymentAmount,
                 'payment_method' => $dto->paymentMethod,
-                'transaction_id' => $dto->transactionId,
+                'transaction_id' => $transactionId,
                 'status' => $status,
                 'paid_at' => $status === 'paid' ? now() : null,
             ]);
@@ -165,16 +170,36 @@ class PaymentService
 
                 if ($transactionId !== null) {
                     $updateData['transaction_id'] = $transactionId;
+                } elseif (empty($payment->transaction_id)) {
+                    $updateData['transaction_id'] = $this->generateTransactionId();
                 }
             }
 
-            if ($newStatus === 'refunded' && $transactionId !== null) {
-                $updateData['transaction_id'] = $transactionId;
+            if ($newStatus === 'refunded') {
+                if ($transactionId !== null) {
+                    $updateData['transaction_id'] = $transactionId;
+                } elseif (empty($payment->transaction_id)) {
+                    $updateData['transaction_id'] = $this->generateTransactionId();
+                }
             }
 
             $payment->update($updateData);
 
             return $payment->refresh()->load('booking');
         });
+    }
+
+    private function generateTransactionId(): string
+    {
+        do {
+            $id = 'TXN-'.
+                now()->format('Ymd').
+                '-'.
+                Str::upper(Str::random(6));
+        } while (
+            $this->paymentRepository->isTransactionUsed($id)
+        );
+
+        return $id;
     }
 }

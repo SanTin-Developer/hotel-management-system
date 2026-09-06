@@ -78,7 +78,7 @@ services:
       POSTGRES_USER: hotel_user
       POSTGRES_PASSWORD: hotel_password
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
@@ -87,6 +87,21 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - hotel_network
+
+  backup:
+    image: postgres:18
+    container_name: hotel_backup
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: hotel_password
+    volumes:
+      - ./backups:/backups
+    command: sh -c "while true; do pg_dump -h postgres -U hotel_user -d hotel_management --format=custom --no-owner --file=/backups/auto_$(date +%Y%m%d_%H%M%S).dump; find /backups -name 'auto_*.dump' -mtime +14 -delete; sleep 86400; done"
     networks:
       - hotel_network
 

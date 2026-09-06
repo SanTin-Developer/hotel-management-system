@@ -231,6 +231,11 @@ Route::prefix('v1/coupons')
 // Review API-EndPoint
 Route::prefix('v1/reviews')->group(function () {
 
+    Route::get('/approved', [
+        ReviewController::class,
+        'approved',
+    ])->middleware('throttle:public-api');
+
     Route::middleware(['auth:sanctum', 'permission:reviews.view'])
         ->get('/', [ReviewController::class, 'index']);
 

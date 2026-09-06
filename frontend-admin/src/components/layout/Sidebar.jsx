@@ -30,6 +30,7 @@ const NAV_SECTIONS = [
         children: [
           { to: "/rooms", label: "Rooms", end: true },
           { to: "/rooms/types", label: "Room types", end: true },
+          { to: "/rooms/amenities", label: "Amenities", end: true },
         ],
       },
     ],

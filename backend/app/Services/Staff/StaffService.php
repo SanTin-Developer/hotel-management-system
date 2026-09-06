@@ -18,7 +18,7 @@ class StaffService
     public function getAll(array $filters = [])
     {
         return Staff::query()
-            ->with('user:id,name,email,phone')
+            ->with(['user:id,name,email,phone', 'user.roles'])
             ->when(
                 ! empty($filters['search']),
                 function ($query) use ($filters) {
@@ -56,7 +56,7 @@ class StaffService
 
     public function getById(Staff $staff): Staff
     {
-        return $staff->load('user:id,name,email,phone,status');
+        return $staff->load(['user:id,name,email,phone,status', 'user.roles']);
     }
 
     public function create(array $data): Staff
@@ -82,7 +82,7 @@ class StaffService
                 'position' => $data['position'],
                 'hire_date' => $data['hire_date'],
                 'status' => $data['status'] ?? 'active',
-            ])->load('user:id,name,email,phone');
+            ])->load(['user:id,name,email,phone', 'user.roles']);
         });
     }
 
@@ -112,6 +112,10 @@ class StaffService
                 }
             }
 
+            if (! empty($data['role'])) {
+                $staff->user->syncRoles($data['role']);
+            }
+
             $staffData = array_filter([
                 'employee_id' => $data['employee_id'] ?? null,
                 'position' => $data['position'] ?? null,
@@ -123,7 +127,7 @@ class StaffService
                 $staff->update($staffData);
             }
 
-            return $staff->refresh()->load('user:id,name,email,phone');
+            return $staff->refresh()->load(['user:id,name,email,phone', 'user.roles']);
         });
     }
 
@@ -153,7 +157,7 @@ class StaffService
                 $this->cloudinary->destroy($previous);
             }
 
-            return $staff->refresh()->load('user:id,name,email,phone');
+            return $staff->refresh()->load(['user:id,name,email,phone', 'user.roles']);
         });
     }
 
@@ -171,7 +175,7 @@ class StaffService
                 $this->cloudinary->destroy($publicId);
             }
 
-            return $staff->refresh()->load('user:id,name,email,phone');
+            return $staff->refresh()->load(['user:id,name,email,phone', 'user.roles']);
         });
     }
 

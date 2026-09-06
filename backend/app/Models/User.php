@@ -44,6 +44,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Guest profile associated with this user (matched by email).
+     */
+    public function guest(): HasOne
+    {
+        return $this->hasOne(Guest::class, 'email', 'email');
+    }
+
+    /**
      * Bookings created by this user.
      */
     public function createdBookings(): HasMany

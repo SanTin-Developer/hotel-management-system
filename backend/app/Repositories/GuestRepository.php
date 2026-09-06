@@ -29,7 +29,8 @@ class GuestRepository
                 ! empty($filters['country']),
                 fn ($query) => $query->where(
                     'country',
-                    $filters['country']
+                    'ILIKE',
+                    "%{$filters['country']}%"
                 )
             )
             ->orderBy('full_name')

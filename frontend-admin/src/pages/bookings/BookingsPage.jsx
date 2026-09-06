@@ -17,6 +17,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import PageHeader from "@/components/PageHeader";
 import DataTable from "@/components/DataTable";
 import SearchInput from "@/components/SearchInput";
+import useUrlQuerySearch from "@/hooks/useUrlQuerySearch";
 import StatusBadge from "@/components/StatusBadge";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -37,6 +38,17 @@ import { fetchCoupons } from "@/services/api/coupons";
 import { getErrorMessage, formatCurrency, formatDate, formatDateTime, titleCase, initialsOf } from "@/lib/format";
 
 const STATUSES = ["pending", "confirmed", "cancelled", "completed"];
+
+const BOOKING_TYPES = {
+  website: "Online booking",
+  walk_in: "With receptionist",
+  phone: "By phone",
+  third_party: "Third party",
+};
+
+function bookingTypeLabel(source) {
+  return BOOKING_TYPES[source] ?? titleCase(source ?? "website");
+}
 
 function BookingCreateForm({ guests, coupons, onSuccess }) {
   const queryClient = useQueryClient();
@@ -106,11 +118,12 @@ function BookingCreateForm({ guests, coupons, onSuccess }) {
       children: Number(form.children || 0),
       room_ids: form.room_ids,
       coupon_id: form.coupon_id ? Number(form.coupon_id) : undefined,
+      booking_source: "walk_in",
       special_request: form.special_request || undefined,
     });
   }
 
-  const availableRooms = availabilityQuery.data?.rooms ?? [];
+  const availableRooms = availabilityQuery.data?.data ?? availabilityQuery.data?.rooms ?? [];
 
   return (
     <form onSubmit={handleSubmit}>
@@ -249,7 +262,7 @@ function BookingCreateForm({ guests, coupons, onSuccess }) {
 export default function BookingsPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useUrlQuerySearch();
   const [status, setStatus] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [detail, setDetail] = useState(null);
@@ -339,6 +352,20 @@ export default function BookingsPage() {
       ),
     },
     {
+      header: "Type",
+      cell: (r) => (
+        <span
+          className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${
+            r.booking_source === "walk_in"
+              ? "bg-[#F1F3ED] text-[#5E6B5A]"
+              : "bg-[#7FA35C]/10 text-[#4F7A3B]"
+          }`}
+        >
+          {bookingTypeLabel(r.booking_source)}
+        </span>
+      ),
+    },
+    {
       header: "Guests",
       cell: (r) => (
         <span className="inline-flex items-center gap-1.5 text-[#5E6B5A]">
@@ -352,6 +379,17 @@ export default function BookingsPage() {
       cell: (r) => (
         <span className="font-semibold text-[#1E2B22]">
           {formatCurrency(r.total_amount)}
+        </span>
+      ),
+    },
+    {
+      header: "Deposit",
+      cell: (r) => (
+        <span className="text-[#5E6B5A]">
+          {formatCurrency(r.deposit_amount ?? 0)}
+          {r.deposit_rate != null && (
+            <span className="ml-1 text-xs text-[#7A8677]">({r.deposit_rate}%)</span>
+          )}
         </span>
       ),
     },
@@ -474,6 +512,8 @@ export default function BookingsPage() {
             loading={bookingsQuery.isLoading}
             emptyTitle="No bookings found"
             emptyDescription="Create a booking to get started."
+            minWidth={1180}
+            onRowDoubleClick={openDetail}
           />
           <div className="mt-3 rounded-xl border border-[#DCE3D5] bg-white">
             <Pagination
@@ -538,6 +578,7 @@ export default function BookingsPage() {
                     <DetailItem label="Check-out" value={formatDate(detail.check_out)} />
                     <DetailItem label="Adults" value={detail.adults} />
                     <DetailItem label="Children" value={detail.children ?? 0} />
+                    <DetailItem label="Type" value={bookingTypeLabel(detail.booking_source)} />
                   </div>
                 </DetailBlock>
 
@@ -596,11 +637,21 @@ export default function BookingsPage() {
                   </DetailBlock>
                 )}
 
-                <div className="flex items-center justify-between rounded-lg bg-[#F8F9F4] px-4 py-3">
-                  <span className="text-sm text-[#7A8677]">Total</span>
-                  <span className="text-lg font-semibold text-[#1E2B22]">
-                    {formatCurrency(detail.total_amount)}
-                  </span>
+                <div className="space-y-2 rounded-lg bg-[#F8F9F4] px-4 py-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-[#7A8677]">
+                      Deposit ({detail.deposit_rate ?? "—"}%)
+                    </span>
+                    <span className="font-medium text-[#1E2B22]">
+                      {formatCurrency(detail.deposit_amount ?? 0)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-[#E4E9DF] pt-2">
+                    <span className="text-sm text-[#7A8677]">Total</span>
+                    <span className="text-lg font-semibold text-[#1E2B22]">
+                      {formatCurrency(detail.total_amount)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </>

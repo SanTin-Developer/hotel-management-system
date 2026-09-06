@@ -20,6 +20,8 @@ class Booking extends Model
         'adults',
         'children',
         'total_amount',
+        'deposit_rate',
+        'deposit_amount',
         'booking_source',
         'created_by',
         'status',
@@ -35,6 +37,7 @@ class Booking extends Model
             'adults' => 'integer',
             'children' => 'integer',
             'total_amount' => 'decimal:2',
+            'deposit_amount' => 'decimal:2',
         ];
     }
 

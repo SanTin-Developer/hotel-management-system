@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Eye, Wallet } from "lucide-react";
+import { Plus, Eye, Wallet, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -34,13 +34,31 @@ function PaymentForm({ booking, onSuccess }) {
   });
   const [errors, setErrors] = useState({});
 
+  const paymentsQuery = useQuery({
+    queryKey: ["booking-payments", booking.id],
+    queryFn: () => fetchBookingPayments(booking.id),
+  });
+
+  const existingPayments = paymentsQuery.data?.items ?? [];
+  const paidAmount =
+    existingPayments
+      .filter((p) => p.status === "pending" || p.status === "paid")
+      .reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+  const totalAmount = Number(booking.total_amount) || 0;
+  const remaining = Math.max(0, Math.round((totalAmount - paidAmount) * 100) / 100);
+  const fullyPaid = totalAmount > 0 && remaining <= 0;
+  const depositRate = Number(booking.deposit_rate) || 30;
+  const suggestedDeposit = Math.round(Number(booking.deposit_amount || 0) * 100) / 100;
+  const depositAvailable = suggestedDeposit > 0 && remaining >= suggestedDeposit;
+
   const mutation = useMutation({
     mutationFn: createPayment,
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Payment recorded.");
       queryClient.invalidateQueries({ queryKey: ["booking-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["payments-bookings"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
-      onSuccess();
+      onSuccess(data);
     },
     onError: (error) => toast.error(getErrorMessage(error, "Could not record payment.")),
   });
@@ -54,8 +72,8 @@ function PaymentForm({ booking, onSuccess }) {
     e.preventDefault();
     const errs = {};
     if (form.amount === "" || Number(form.amount) <= 0) errs.amount = "Enter a valid amount.";
-    if (form.payment_method !== "cash" && !form.transaction_id.trim()) {
-      errs.transaction_id = "Transaction ID is required for this method.";
+    if (form.amount !== "" && Number(form.amount) > remaining) {
+      errs.amount = `Cannot exceed the remaining balance of ${formatCurrency(remaining)}.`;
     }
     setErrors(errs);
     if (Object.keys(errs).length) return;
@@ -67,12 +85,51 @@ function PaymentForm({ booking, onSuccess }) {
     });
   }
 
+  if (paymentsQuery.isLoading) {
+    return (
+      <div className="rounded-xl border border-[#EEF1E9] px-4 py-8 text-center text-sm text-[#7A8677]">
+        Loading payment details…
+      </div>
+    );
+  }
+
+  if (fullyPaid) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-start gap-3 rounded-xl border border-[#7FA35C]/30 bg-[#F3F8EC] px-4 py-3">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#4F7A3B]" strokeWidth={1.5} />
+          <div>
+            <p className="text-sm font-medium text-[#1E2B22]">This booking is already fully paid.</p>
+            <p className="text-xs text-[#5E6B5A]">
+              {formatCurrency(paidAmount)} received of {formatCurrency(totalAmount)} — no further payment can be recorded.
+            </p>
+          </div>
+        </div>
+        {existingPayments.length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium uppercase tracking-wide text-[#7A8677]">Recorded payments</p>
+            {existingPayments.map((p) => (
+              <div key={p.id} className="flex items-center justify-between rounded-lg border border-[#EEF1E9] px-3 py-2 text-sm">
+                <span className="text-[#1E2B22]">{formatCurrency(p.amount)}</span>
+                <span className="flex items-center gap-2 text-xs text-[#7A8677]">
+                  {titleCase(p.payment_method)}
+                  <StatusBadge status={p.status} />
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit}>
       <div className="rounded-lg border border-[#EEF1E9] bg-[#F8F9F4] px-4 py-3">
         <p className="text-sm font-medium text-[#1E2B22]">{booking.booking_code}</p>
         <p className="text-xs text-[#7A8677]">
-          {booking.guest?.full_name} · Total {formatCurrency(booking.total_amount)}
+          {booking.guest?.full_name} · Total {formatCurrency(booking.total_amount)} · Remaining{" "}
+          <span className="font-medium text-[#5E6B5A]">{formatCurrency(remaining)}</span>
         </p>
       </div>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -95,13 +152,40 @@ function PaymentForm({ booking, onSuccess }) {
         />
       </div>
       <div className="mt-4">
+        <p className="mb-1.5 text-xs text-[#7A8677]">Quick options</p>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            disabled={!depositAvailable}
+            onClick={() => set("amount", String(suggestedDeposit))}
+            className="flex flex-col items-start rounded-lg border border-[#DCE3D5] bg-white px-3.5 py-2.5 text-left transition-colors hover:border-[#7FA35C] hover:bg-[#F8F9F4] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <span className="text-sm font-medium text-[#1E2B22]">
+              Deposit only ({depositRate}%)
+            </span>
+            <span className="text-xs text-[#7A8677]">
+              {formatCurrency(suggestedDeposit)} now — pay the rest on arrival
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => set("amount", String(remaining))}
+            className="flex flex-col items-start rounded-lg border border-[#DCE3D5] bg-white px-3.5 py-2.5 text-left transition-colors hover:border-[#7FA35C] hover:bg-[#F8F9F4]"
+          >
+            <span className="text-sm font-medium text-[#1E2B22]">Full payment</span>
+            <span className="text-xs text-[#7A8677]">
+              {formatCurrency(remaining)} now — whole stay covered
+            </span>
+          </button>
+        </div>
+      </div>
+      <div className="mt-4">
         <TextField
           label="Transaction ID"
           name="transaction_id"
           value={form.transaction_id}
           onChange={(v) => set("transaction_id", v)}
-          error={errors.transaction_id}
-          hint="Required for card, bank transfer and online payments."
+          hint="Optional — one is generated automatically if left blank."
           placeholder="TXN-000123"
         />
       </div>
@@ -258,6 +342,8 @@ export default function PaymentsPage() {
             loading={bookingsQuery.isLoading}
             emptyTitle="No bookings found"
             emptyDescription="Bookings appear here so you can record their payments."
+            onRowDoubleClick={setDetail}
+            minWidth={1180}
           />
           <div className="mt-3 rounded-xl border border-[#DCE3D5] bg-white">
             <Pagination

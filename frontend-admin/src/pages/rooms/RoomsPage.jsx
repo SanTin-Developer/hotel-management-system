@@ -7,9 +7,11 @@ import { toast } from "sonner";
 import PageHeader from "@/components/PageHeader";
 import DataTable from "@/components/DataTable";
 import SearchInput from "@/components/SearchInput";
+import useUrlQuerySearch from "@/hooks/useUrlQuerySearch";
 import StatusBadge from "@/components/StatusBadge";
 import Pagination from "@/components/Pagination";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import DetailModal from "@/components/DetailModal";
 import FormModal, { FormActions } from "@/components/FormModal";
 import { LoadingState, ErrorState } from "@/components/States";
 import { TextField, SelectField, TextAreaField, ImageField } from "@/components/form/Inputs";
@@ -184,7 +186,7 @@ function RoomForm({ room, roomTypes, onSuccess }) {
 export default function RoomsPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useUrlQuerySearch();
   const [status, setStatus] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [formOpen, setFormOpen] = useState(false);
@@ -192,6 +194,7 @@ export default function RoomsPage() {
   const [deleting, setDeleting] = useState(null);
   const [imageTargetId, setImageTargetId] = useState(null);
   const hiddenImageInput = useRef(null);
+  const [detail, setDetail] = useState(null);
 
   const roomsQuery = useQuery({
     queryKey: ["rooms", page, search, status, typeFilter],
@@ -440,6 +443,8 @@ export default function RoomsPage() {
             loading={roomsQuery.isLoading}
             emptyTitle="No rooms found"
             emptyDescription="Try adjusting your filters, or add a new room."
+            onRowDoubleClick={setDetail}
+            minWidth={1180}
           />
           <div className="mt-3 rounded-xl border border-[#DCE3D5] bg-white">
             <Pagination
@@ -495,6 +500,13 @@ export default function RoomsPage() {
         confirmLabel="Delete room"
         loading={deleteMutation.isPending}
         onConfirm={() => deleting && deleteMutation.mutate(deleting.id)}
+      />
+
+      <DetailModal
+        open={Boolean(detail)}
+        onOpenChange={(open) => !open && setDetail(null)}
+        title={detail ? `Room ${detail.room_number}` : "Room details"}
+        record={detail}
       />
     </div>
   );
