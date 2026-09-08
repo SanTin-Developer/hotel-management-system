@@ -9,6 +9,8 @@ php artisan config:cache
 
 # Run migrations on every deploy (safe to run repeatedly — only applies new ones)
 php artisan migrate --force
+php artisan db:seed --class=SampleDataSeeder --force
+php artisan config:cache
 
 # Start nginx + php-fpm together
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
