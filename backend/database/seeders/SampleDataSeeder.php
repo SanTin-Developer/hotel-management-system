@@ -18,8 +18,11 @@ class SampleDataSeeder extends Seeder
 {
 public function run(): void
 {
-    // Roles must exist before users/staff sync their roles
-    $this->call(RoleSeeder::class);
+    // Roles and permissions must exist before users/staff sync their roles
+    $this->call([
+        RoleSeeder::class,
+        PermissionSeeder::class,
+    ]);
 
     $this->seedRoomTypes();
     $this->seedRooms();
