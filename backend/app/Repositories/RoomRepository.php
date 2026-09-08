@@ -18,7 +18,11 @@ class RoomRepository
     public function getAll(array $filters = []): LengthAwarePaginator
     {
         return Room::query()
-            ->with('roomType')
+            ->with([
+                'roomType',
+                'amenities',
+                'images',
+            ])
             ->withCount('bookingItems')
             ->when(
                 ! empty($filters['search']),
@@ -64,6 +68,8 @@ class RoomRepository
         return Room::query()
             ->with([
                 'roomType',
+                'amenities',
+                'images',
                 'bookingItems',
             ])
             ->withCount('bookingItems')

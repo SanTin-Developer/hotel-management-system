@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Auth\LoginRequest;
 use App\Http\Requests\Api\V1\Auth\RegisterRequest;
 use App\Http\Requests\Api\V1\Auth\ResendOtpRequest;
+use App\Http\Requests\Api\V1\Auth\UpdateProfileRequest;
+use App\Http\Requests\Api\V1\Auth\UploadProfilePhotoRequest;
 use App\Http\Requests\Api\V1\Auth\VerifyOtpRequest;
 use App\Services\Auth\AuthService;
 use App\Services\Auth\RegistrationService;
@@ -82,6 +84,46 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Authenticated user retrieved successfully.',
+            'user' => $result['user'],
+        ]);
+    }
+
+    public function updateMe(
+        UpdateProfileRequest $request
+    ): JsonResponse {
+        $result = $this->authService->updateProfile(
+            $request->user(),
+            $request->validated()
+        );
+
+        return response()->json([
+            'message' => 'Profile updated successfully.',
+            'user' => $result['user'],
+        ]);
+    }
+
+    public function uploadMePhoto(
+        UploadProfilePhotoRequest $request
+    ): JsonResponse {
+        $result = $this->authService->uploadPhoto(
+            $request->user(),
+            $request->file('photo')
+        );
+
+        return response()->json([
+            'message' => 'Photo updated successfully.',
+            'user' => $result['user'],
+        ]);
+    }
+
+    public function removeMePhoto(Request $request): JsonResponse
+    {
+        $result = $this->authService->removePhoto(
+            $request->user()
+        );
+
+        return response()->json([
+            'message' => 'Photo removed successfully.',
             'user' => $result['user'],
         ]);
     }

@@ -36,6 +36,9 @@ class StorePaymentRequest extends FormRequest
                     'card',
                     'bank_transfer',
                     'online',
+                    'aba',
+                    'wing',
+                    'acleda',
                 ]),
             ],
 

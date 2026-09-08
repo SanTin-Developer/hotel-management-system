@@ -44,7 +44,7 @@
                             ">
 
                             <img src="https://res.cloudinary.com/drercy9vt/image/upload/v1788588116/Gemini_Generated_Image_m6go6vm6go6vm6go-removebg-preview_guzd4n.png"
-                                 alt="Kampuchea Otel"
+                                 alt="Kumpuchea Otel"
                                  width="44"
                                  height="44"
                                  style="
@@ -61,7 +61,7 @@
                                 color: #F2F5EC;
                                 letter-spacing: 0.5px;
                             ">
-                                Kampuchea Otel
+                                Kumpuchea Otel
                             </div>
 
                             <div style="
@@ -110,7 +110,7 @@
                                 color: #5E6B5A;
                             ">
                                 Thank you for using&nbsp;
-                                <strong style="color: #16261F;">Kampuchea Otel</strong>.
+                                <strong style="color: #16261F;">Kumpuchea Otel</strong>.
                                 Please use the verification code below to continue.
                             </p>
 
@@ -198,7 +198,7 @@
                             ">
                                 Regards,<br>
                                 <strong style="color: #16261F;">
-                                    Kampuchea Otel Team
+                                    Kumpuchea Otel Team
                                 </strong>
                             </p>
 
@@ -227,7 +227,7 @@
                                 font-size: 12px;
                                 color: #A8B39F;
                             ">
-                                &copy; {{ date('Y') }} Kampuchea Otel.
+                                &copy; {{ date('Y') }} Kumpuchea Otel.
                                 All rights reserved.
                             </p>
 

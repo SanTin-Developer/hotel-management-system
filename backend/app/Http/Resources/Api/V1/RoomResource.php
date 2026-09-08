@@ -21,6 +21,15 @@ class RoomResource extends JsonResource
             'description' => $this->description,
             'image_url' => $this->image_url,
 
+            'images' => $this->whenLoaded(
+                'images',
+                fn () => $this->images->map(fn ($image) => [
+                    'id' => $image->id,
+                    'image_url' => $image->image_url,
+                    'sort_order' => $image->sort_order,
+                ])
+            ),
+
             'room_type' => $this->whenLoaded(
                 'roomType',
                 fn () => new RoomTypeResource($this->roomType)

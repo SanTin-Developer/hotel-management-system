@@ -19,7 +19,9 @@ class AmenityService
                     $query->where(function ($query) use ($search) {
                         $query
                             ->where('name', 'ILIKE', "%{$search}%")
-                            ->orWhere('description', 'ILIKE', "%{$search}%");
+                            ->orWhere('name_kh', 'ILIKE', "%{$search}%")
+                            ->orWhere('description', 'ILIKE', "%{$search}%")
+                            ->orWhere('description_kh', 'ILIKE', "%{$search}%");
                     });
                 }
             )

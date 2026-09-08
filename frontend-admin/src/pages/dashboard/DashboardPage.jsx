@@ -62,6 +62,7 @@ function BarChart({ data, accent = "#7FA35C" }) {
 function BookingOverview({ data }) {
   const total =
     (data?.confirmed ?? 0) +
+    (data?.in_house ?? 0) +
     (data?.pending ?? 0) +
     (data?.cancelled ?? 0) +
     (data?.completed ?? 0) || 1;
@@ -69,6 +70,7 @@ function BookingOverview({ data }) {
   const segments = [
     { key: "completed", label: "Completed", color: "#16261F", value: Number(data?.completed) || 0 },
     { key: "confirmed", label: "Confirmed", color: "#7FA35C", value: Number(data?.confirmed) || 0 },
+    { key: "in_house", label: "In-house", color: "#3B6FB6", value: Number(data?.in_house) || 0 },
     { key: "pending", label: "Pending", color: "#D9A441", value: Number(data?.pending) || 0 },
     { key: "cancelled", label: "Cancelled", color: "#C25B50", value: Number(data?.cancelled) || 0 },
   ];

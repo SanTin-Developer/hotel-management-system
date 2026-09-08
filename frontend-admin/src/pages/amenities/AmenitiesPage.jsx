@@ -22,7 +22,9 @@ import { getErrorMessage, formatDate, titleCase } from "@/lib/format";
 
 const EMPTY_FORM = {
   name: "",
+  name_kh: "",
   description: "",
+  description_kh: "",
   icon: "",
 };
 
@@ -33,7 +35,9 @@ function AmenityForm({ amenity, onSuccess }) {
     isEdit
       ? {
           name: amenity.name,
+          name_kh: amenity.name_kh ?? "",
           description: amenity.description ?? "",
+          description_kh: amenity.description_kh ?? "",
           icon: amenity.icon ?? "",
         }
       : EMPTY_FORM,
@@ -64,7 +68,9 @@ function AmenityForm({ amenity, onSuccess }) {
     if (Object.keys(errs).length) return;
     mutation.mutate({
       name: form.name.trim(),
+      name_kh: form.name_kh.trim() || null,
       description: form.description.trim() || null,
+      description_kh: form.description_kh.trim() || null,
       icon: form.icon.trim() || null,
     });
   }
@@ -82,6 +88,13 @@ function AmenityForm({ amenity, onSuccess }) {
           placeholder="Free Wi-Fi"
         />
         <TextField
+          label="Name (Khmer)"
+          name="name_kh"
+          value={form.name_kh}
+          onChange={(v) => set("name_kh", v)}
+          placeholder="វ៉ាយហ្វាយឥតគិតថ្លៃ"
+        />
+        <TextField
           label="Icon"
           name="icon"
           value={form.icon}
@@ -95,6 +108,13 @@ function AmenityForm({ amenity, onSuccess }) {
           value={form.description}
           onChange={(v) => set("description", v)}
           placeholder="Describe what guests can expect."
+        />
+        <TextAreaField
+          label="Description (Khmer)"
+          name="description_kh"
+          value={form.description_kh}
+          onChange={(v) => set("description_kh", v)}
+          placeholder="ពិពណ៌នាអំពីអ្វីដែលភ្ញៀវអាចរំពឹងបាន។"
         />
       </div>
       <FormActions
@@ -144,6 +164,9 @@ export default function AmenitiesPage() {
           </span>
           <div>
             <p className="font-semibold text-[#1E2B22]">{r.name}</p>
+            {r.name_kh && (
+              <p className="text-xs text-[#A67C16]">{r.name_kh}</p>
+            )}
             {r.icon && (
               <p className="text-xs text-[#7A8677]">{titleCase(r.icon)}</p>
             )}
@@ -154,9 +177,14 @@ export default function AmenitiesPage() {
     {
       header: "Description",
       cell: (r) => (
-        <p className="max-w-md truncate text-sm text-[#5E6B5A]">
-          {r.description || "—"}
-        </p>
+        <div className="max-w-md">
+          <p className="truncate text-sm text-[#5E6B5A]">
+            {r.description || "—"}
+          </p>
+          {r.description_kh && (
+            <p className="truncate text-xs text-[#A67C16]">{r.description_kh}</p>
+          )}
+        </div>
       ),
     },
     {

@@ -9,6 +9,7 @@ use App\Models\Booking;
 use App\Models\BookingItem;
 use App\Models\BookingStatusHistory;
 use App\Models\Guest;
+use App\Models\Payment;
 use App\Models\Room;
 use App\Repositories\BookingRepository;
 use App\Services\Coupon\CouponService;
@@ -180,9 +181,6 @@ class BookingService
                 'coupon',
             ]);
 
-            SendBookingConfirmationEmail::dispatch($booking->id)
-                ->afterCommit();
-
             return $booking;
         });
     }
@@ -208,6 +206,156 @@ class BookingService
         return $this->changeStatus(
             $booking,
             'cancelled',
+            $changedBy,
+            $note
+        );
+    }
+
+    public function requestCancellation(
+        Booking $booking,
+        ?int $changedBy = null
+    ): Booking {
+        return DB::transaction(function () use ($booking, $changedBy) {
+            $booking = Booking::query()
+                ->whereKey($booking->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if (! in_array($booking->status, ['pending', 'confirmed'], true)) {
+                throw ValidationException::withMessages([
+                    'status' => [
+                        'Only pending or confirmed bookings can request cancellation.',
+                    ],
+                ]);
+            }
+
+            if (! $this->isRefundEligibleAt($booking)) {
+                throw ValidationException::withMessages([
+                    'status' => [
+                        'Cancellation requests are only accepted more than 48 hours before check-in.',
+                    ],
+                ]);
+            }
+
+            $fromStatus = $booking->status;
+
+            $booking->update([
+                'status' => 'cancellation_requested',
+            ]);
+
+            BookingStatusHistory::create([
+                'booking_id' => $booking->id,
+                'status' => 'cancellation_requested',
+                'changed_by' => $changedBy,
+                'note' => "Cancellation requested from:{$fromStatus}.",
+            ]);
+
+            return $booking->refresh()->load([
+                'guest',
+                'rooms.roomType',
+                'bookingItems.room',
+                'statusHistories.changedBy',
+                'coupon',
+            ]);
+        });
+    }
+
+    public function approveCancellation(
+        Booking $booking,
+        ?int $changedBy = null
+    ): Booking {
+        return DB::transaction(function () use ($booking, $changedBy) {
+            $booking = Booking::query()
+                ->whereKey($booking->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($booking->status !== 'cancellation_requested') {
+                throw ValidationException::withMessages([
+                    'status' => [
+                        'Only cancellation requests can be approved.',
+                    ],
+                ]);
+            }
+
+            $booking->update([
+                'status' => 'cancelled',
+            ]);
+
+            $this->refundDepositPayments($booking);
+
+            BookingStatusHistory::create([
+                'booking_id' => $booking->id,
+                'status' => 'cancelled',
+                'changed_by' => $changedBy,
+                'note' => 'Cancellation approved by hotel.',
+            ]);
+
+            SendBookingStatusEmail::dispatch(
+                $booking->id,
+                'cancelled',
+                'Cancellation approved by hotel.'
+            )->afterCommit();
+
+            return $booking->refresh()->load([
+                'guest',
+                'rooms.roomType',
+                'bookingItems.room',
+                'statusHistories.changedBy',
+                'coupon',
+            ]);
+        });
+    }
+
+    public function rejectCancellation(
+        Booking $booking,
+        ?int $changedBy = null
+    ): Booking {
+        return DB::transaction(function () use ($booking, $changedBy) {
+            $booking = Booking::query()
+                ->whereKey($booking->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($booking->status !== 'cancellation_requested') {
+                throw ValidationException::withMessages([
+                    'status' => [
+                        'Only cancellation requests can be rejected.',
+                    ],
+                ]);
+            }
+
+            $restoreStatus = $this->priorStatusBeforeRequest($booking);
+
+            $booking->update([
+                'status' => $restoreStatus,
+            ]);
+
+            BookingStatusHistory::create([
+                'booking_id' => $booking->id,
+                'status' => $restoreStatus,
+                'changed_by' => $changedBy,
+                'note' => 'Cancellation request rejected.',
+            ]);
+
+            return $booking->refresh()->load([
+                'guest',
+                'rooms.roomType',
+                'bookingItems.room',
+                'statusHistories.changedBy',
+                'coupon',
+            ]);
+        });
+    }
+
+    public function checkIn(
+        Booking $booking,
+        ?int $changedBy = null,
+        ?string $note = null
+    ): Booking {
+        return $this->changeStatus(
+            $booking,
+            'in_house',
             $changedBy,
             $note
         );
@@ -247,10 +395,22 @@ class BookingService
                 'pending' => [
                     'confirmed',
                     'cancelled',
+                    'cancellation_requested',
                 ],
 
                 'confirmed' => [
+                    'in_house',
                     'completed',
+                    'cancelled',
+                    'cancellation_requested',
+                ],
+
+                'in_house' => [
+                    'completed',
+                    'cancelled',
+                ],
+
+                'cancellation_requested' => [
                     'cancelled',
                 ],
 
@@ -278,6 +438,10 @@ class BookingService
                 'status' => $newStatus,
             ]);
 
+            if ($newStatus === 'cancelled' && $this->isRefundEligibleAt($booking)) {
+                $this->refundDepositPayments($booking);
+            }
+
             BookingStatusHistory::create([
                 'booking_id' => $booking->id,
                 'status' => $newStatus,
@@ -285,11 +449,16 @@ class BookingService
                 'note' => $note,
             ]);
 
-            SendBookingStatusEmail::dispatch(
-                $booking->id,
-                $newStatus,
-                $note
-            )->afterCommit();
+            if ($newStatus === 'confirmed') {
+                SendBookingConfirmationEmail::dispatch($booking->id)
+                    ->afterCommit();
+            } else {
+                SendBookingStatusEmail::dispatch(
+                    $booking->id,
+                    $newStatus,
+                    $note
+                )->afterCommit();
+            }
 
             return $booking->refresh()->load([
                 'guest',
@@ -329,5 +498,50 @@ class BookingService
         }
 
         return 30.0;
+    }
+
+    private function isRefundEligibleAt(Booking $booking): bool
+    {
+        $checkIn = $booking->check_in;
+
+        if (! $checkIn) {
+            return false;
+        }
+
+        $deadline = $checkIn->copy()->startOfDay()->subHours(48);
+
+        return now()->lt($deadline);
+    }
+
+    private function refundDepositPayments(Booking $booking): void
+    {
+        $booking->payments()
+            ->where('status', 'paid')
+            ->get()
+            ->each(function (Payment $payment) {
+                $payment->update([
+                    'status' => 'refunded',
+                    'transaction_id' => $payment->transaction_id
+                        ?: 'RFD-'.$payment->id.'-'.now()->format('Ymd'),
+                ]);
+            });
+    }
+
+    private function priorStatusBeforeRequest(Booking $booking): string
+    {
+        $entry = $booking->statusHistories()
+            ->where('status', 'cancellation_requested')
+            ->orderByDesc('id')
+            ->first();
+
+        if ($entry && preg_match('/from:(\w+)/', (string) $entry->note, $matches)) {
+            $from = $matches[1];
+
+            if (in_array($from, ['pending', 'confirmed'], true)) {
+                return $from;
+            }
+        }
+
+        return 'confirmed';
     }
 }

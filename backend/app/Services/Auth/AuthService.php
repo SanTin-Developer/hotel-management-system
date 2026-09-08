@@ -3,21 +3,30 @@
 namespace App\Services\Auth;
 
 use App\Exceptions\LoginException;
+use App\Models\Guest;
 use App\Models\User;
+use App\Services\Media\CloudinaryService;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class AuthService
 {
-    public function login(string $email, string $password): array
+    public function __construct(
+        private readonly CloudinaryService $cloudinary
+    ) {}
+    public function login(string $identifier, string $password): array
     {
-        $email = strtolower(trim($email));
+        $identifier = strtolower(trim($identifier));
 
-        $user = User::where('email', $email)->first();
+        $user = User::where('email', $identifier)
+            ->orWhere('phone', $identifier)
+            ->first();
 
         if (! $user) {
-            throw new LoginException(404, 'No account found with this email. Please register first.', [
+            throw new LoginException(404, 'No account found with this email or phone. Please register first.', [
                 'email' => [
-                    'No account found with this email.',
+                    'No account found with this email or phone.',
                 ],
             ]);
         }
@@ -38,6 +47,19 @@ class AuthService
             ]);
         }
 
+        // Ensure the user has a guest profile so the customer portal works
+        // even when the account was originally created via the admin portal.
+        if (! $user->guest()->exists()) {
+            Guest::create([
+                'full_name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'country' => null,
+                'id_type' => null,
+                'id_number' => null,
+            ]);
+        }
+
         $token = $user->createToken('customer-auth')->plainTextToken;
 
         return [
@@ -51,10 +73,101 @@ class AuthService
         $user->currentAccessToken()?->delete();
     }
 
+    public function updateProfile(User $user, array $data): array
+    {
+        return DB::transaction(function () use ($user, $data) {
+            if (array_key_exists('full_name', $data) && $data['full_name'] !== null) {
+                $user->name = $data['full_name'];
+            }
+
+            if (array_key_exists('phone', $data)) {
+                $user->phone = $data['phone'];
+            }
+
+            $user->save();
+
+            $guest = $user->guest()->first();
+
+            if ($guest) {
+                $guest->update(array_intersect_key($data, array_flip([
+                    'full_name',
+                    'phone',
+                    'country',
+                    'id_type',
+                    'id_number',
+                    'address',
+                    'nationality',
+                    'gender',
+                    'date_of_birth',
+                ])));
+            }
+
+            return [
+                'user' => $user->fresh()->load('roles', 'guest'),
+            ];
+        });
+    }
+
     public function me(User $user): array
     {
         return [
             'user' => $user->load('roles', 'guest'),
         ];
+    }
+
+    public function uploadPhoto(User $user, UploadedFile $file): array
+    {
+        return DB::transaction(function () use ($user, $file) {
+            $guest = $user->guest()->first()
+                ?? Guest::create([
+                    'full_name' => $user->name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                ]);
+
+            $previous = $guest->photo_public_id;
+
+            $upload = $this->cloudinary->upload(
+                $file,
+                'hotel/guests'
+            );
+
+            $guest->update([
+                'photo_url' => $upload['secure_url'],
+                'photo_public_id' => $upload['public_id'],
+            ]);
+
+            if ($previous) {
+                $this->cloudinary->destroy($previous);
+            }
+
+            return [
+                'user' => $user->fresh()->load('roles', 'guest'),
+            ];
+        });
+    }
+
+    public function removePhoto(User $user): array
+    {
+        return DB::transaction(function () use ($user) {
+            $guest = $user->guest()->first();
+
+            if ($guest) {
+                $publicId = $guest->photo_public_id;
+
+                $guest->update([
+                    'photo_url' => null,
+                    'photo_public_id' => null,
+                ]);
+
+                if ($publicId) {
+                    $this->cloudinary->destroy($publicId);
+                }
+            }
+
+            return [
+                'user' => $user->fresh()->load('roles', 'guest'),
+            ];
+        });
     }
 }

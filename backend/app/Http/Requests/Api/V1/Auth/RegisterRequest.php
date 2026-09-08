@@ -12,6 +12,13 @@ class RegisterRequest extends FormRequest
         return true;
     }
 
+    public function messages(): array
+    {
+        return [
+            'email.unique' => 'An account with this email already exists. Please log in instead.',
+        ];
+    }
+
     public function rules(): array
     {
         return [

@@ -15,7 +15,9 @@ class AmenityResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'name_kh' => $this->name_kh,
             'description' => $this->description,
+            'description_kh' => $this->description_kh,
             'icon' => $this->icon,
             'rooms_count' => $this->whenCounted('rooms'),
             'created_at' => $this->created_at?->toISOString(),

@@ -13,7 +13,9 @@ export const uploadRoomImage = (id, file) => {
   formData.append("image", file);
   return apiClient.post(`/rooms/${id}/image`, formData);
 };
-export const deleteRoomImage = (id) => remove(`/rooms/${id}/image`);
+export const deleteRoomImage = (id, imageId) => remove(`/rooms/${id}/images/${imageId}`);
+export const syncRoomAmenities = (id, amenity_ids) =>
+  action(`/rooms/${id}/amenities`, "put", { amenity_ids });
 
 export const fetchRoomTypes = (params) => list("/room-types", params);
 export const fetchRoomType = (id) => getOne(`/room-types/${id}`);

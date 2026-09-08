@@ -12,6 +12,21 @@ use Illuminate\Support\Collection;
 
 class DashboardRepository
 {
+    private function applyDepositGate($query): void
+    {
+        $query->where(function ($q) {
+            $q->where('status', '!=', 'pending')
+                ->orWhereHas('payments', function ($payment) {
+                    $payment->where('status', 'paid')
+                        ->whereColumn(
+                            'amount',
+                            '>=',
+                            'bookings.deposit_amount'
+                        );
+                });
+        });
+    }
+
     public function getRoomStats(): object
     {
         return Room::query()
@@ -29,7 +44,11 @@ class DashboardRepository
 
     public function getTodayBookingsCount(): int
     {
-        return Booking::query()
+        $bookings = Booking::query();
+
+        $this->applyDepositGate($bookings);
+
+        return $bookings
             ->whereDate('created_at', Carbon::today())
             ->count();
     }
@@ -115,19 +134,18 @@ class DashboardRepository
             ->selectRaw('
                 status,
                 COUNT(*) AS total
-            ')
-            ->whereIn('status', [
-                'confirmed',
-                'pending',
-                'cancelled',
-                'completed',
-            ])
+            ');
+
+        $this->applyDepositGate($rows);
+
+        $rows = $rows
             ->groupBy('status')
             ->get()
             ->pluck('total', 'status');
 
         return [
             'confirmed' => (int) ($rows['confirmed'] ?? 0),
+            'in_house' => (int) ($rows['in_house'] ?? 0),
             'pending' => (int) ($rows['pending'] ?? 0),
             'cancelled' => (int) ($rows['cancelled'] ?? 0),
             'completed' => (int) ($rows['completed'] ?? 0),
@@ -136,11 +154,15 @@ class DashboardRepository
 
     public function getRecentBookings(): Collection
     {
-        return Booking::query()
+        $bookings = Booking::query()
             ->with([
                 'guest:id,full_name,email',
                 'rooms:id,room_number',
-            ])
+            ]);
+
+        $this->applyDepositGate($bookings);
+
+        return $bookings
             ->latest()
             ->limit(10)
             ->get([
@@ -162,6 +184,9 @@ class DashboardRepository
                 'booking:id,booking_code',
                 'changedBy:id,name',
             ])
+            ->whereHas('booking', function ($booking) {
+                $this->applyDepositGate($booking);
+            })
             ->latest('created_at')
             ->limit(10)
             ->get([

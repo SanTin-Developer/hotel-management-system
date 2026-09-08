@@ -32,6 +32,14 @@ class BookingResource extends JsonResource
             'status' => $this->status,
             'special_request' => $this->special_request,
 
+            'cancel_request_deadline' => $this->check_in
+                ? $this->check_in->copy()->startOfDay()->subHours(48)->toIso8601String()
+                : null,
+
+            'cancellation_refundable' => $this->check_in
+                ? now()->lt($this->check_in->copy()->startOfDay()->subHours(48))
+                : false,
+
             'guest' => $this->whenLoaded(
                 'guest',
                 fn () => [
@@ -66,6 +74,18 @@ class BookingResource extends JsonResource
                     'discount_type' => $this->coupon->discount_type,
                     'discount_value' => $this->coupon->discount_value,
                 ]
+            ),
+
+            'payments' => $this->whenLoaded(
+                'payments',
+                fn () => $this->payments->map(fn ($payment) => [
+                    'id' => $payment->id,
+                    'amount' => $payment->amount,
+                    'payment_method' => $payment->payment_method,
+                    'status' => $payment->status,
+                    'transaction_id' => $payment->transaction_id,
+                    'paid_at' => $payment->paid_at?->toISOString(),
+                ])->values()
             ),
 
             'created_at' => $this->created_at?->toISOString(),

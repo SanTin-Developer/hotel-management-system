@@ -5,6 +5,7 @@ import {
   Check,
   X,
   PartyPopper,
+  LogIn,
   Eye,
   CalendarDays,
   User as UserIcon,
@@ -28,8 +29,11 @@ import {
   fetchBookings,
   createBooking,
   confirmBooking,
+  checkInBooking,
   cancelBooking,
   completeBooking,
+  approveCancellationBooking,
+  rejectCancellationBooking,
   fetchBookingPayments,
   fetchAvailability,
 } from "@/services/api/bookings";
@@ -37,7 +41,7 @@ import { fetchGuests } from "@/services/api/guests";
 import { fetchCoupons } from "@/services/api/coupons";
 import { getErrorMessage, formatCurrency, formatDate, formatDateTime, titleCase, initialsOf } from "@/lib/format";
 
-const STATUSES = ["pending", "confirmed", "cancelled", "completed"];
+const STATUSES = ["pending", "confirmed", "in_house", "cancellation_requested", "cancelled", "completed"];
 
 const BOOKING_TYPES = {
   website: "Online booking",
@@ -48,6 +52,16 @@ const BOOKING_TYPES = {
 
 function bookingTypeLabel(source) {
   return BOOKING_TYPES[source] ?? titleCase(source ?? "website");
+}
+
+function isRefundableBooking(b) {
+  if (!b) return false;
+  if (typeof b.cancellation_refundable === "boolean") {
+    return b.cancellation_refundable;
+  }
+  const dt = new Date(`${b.check_in}T00:00:00`);
+  if (Number.isNaN(dt.getTime())) return false;
+  return Date.now() < dt.getTime() - 48 * 60 * 60 * 1000;
 }
 
 function BookingCreateForm({ guests, coupons, onSuccess }) {
@@ -297,16 +311,45 @@ export default function BookingsPage() {
   const statusAction = useMutation({
     mutationFn: ({ type, id }) => {
       if (type === "confirm") return confirmBooking(id);
+      if (type === "checkin") return checkInBooking(id);
       if (type === "complete") return completeBooking(id);
+      if (type === "approve") return approveCancellationBooking(id);
+      if (type === "reject") return rejectCancellationBooking(id);
       return cancelBooking(id);
     },
-    onSuccess: (_data, vars) => {
-      toast.success(`Booking ${titleCase(vars.type)}d.`);
+    onSuccess: (data, vars) => {
+      const nextStatus = {
+        confirm: "confirmed",
+        checkin: "in_house",
+        complete: "completed",
+        cancel: "cancelled",
+        approve: "cancelled",
+        reject: "restore",
+      }[vars.type];
+      toast.success(
+        vars.type === "approve"
+          ? "Cancellation approved."
+          : vars.type === "reject"
+            ? "Cancellation request rejected."
+            : vars.type === "checkin"
+              ? "Guest checked in."
+              : `Booking ${titleCase(vars.type)}d.`,
+      );
       queryClient.invalidateQueries({ queryKey: ["bookings"] });
       queryClient.invalidateQueries({ queryKey: ["booking-payments"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
       setActionTarget(null);
-      setDetail((d) => (d ? { ...d, status: vars.type === "complete" ? "completed" : vars.type === "confirm" ? "confirmed" : "cancelled" } : d));
+      setDetail((d) =>
+        d
+          ? {
+              ...d,
+              status:
+                nextStatus === "restore"
+                  ? (data?.status ?? d.status)
+                  : nextStatus,
+            }
+          : d,
+      );
     },
     onError: (error) => toast.error(getErrorMessage(error, "Could not update booking.")),
   });
@@ -432,6 +475,24 @@ export default function BookingsPage() {
           {r.status === "confirmed" && (
             <>
               <IconAction
+                title="Check in"
+                onClick={() => setActionTarget({ type: "checkin", booking: r })}
+                icon={<LogIn className="h-4 w-4" strokeWidth={1.5} />}
+                className="text-[#2F5E87] hover:bg-[#3B6FB6]/10"
+                label="Check in"
+              />
+              <IconAction
+                title="Cancel"
+                onClick={() => setActionTarget({ type: "cancel", booking: r })}
+                icon={<X className="h-4 w-4" strokeWidth={1.5} />}
+                className="text-[#B3453A] hover:bg-[#C25B50]/10"
+                label="Cancel"
+              />
+            </>
+          )}
+          {r.status === "in_house" && (
+            <>
+              <IconAction
                 title="Complete"
                 onClick={() => setActionTarget({ type: "complete", booking: r })}
                 icon={<PartyPopper className="h-4 w-4" strokeWidth={1.5} />}
@@ -447,6 +508,24 @@ export default function BookingsPage() {
               />
             </>
           )}
+          {r.status === "cancellation_requested" && (
+            <>
+              <IconAction
+                title="Approve cancellation"
+                onClick={() => setActionTarget({ type: "approve", booking: r })}
+                icon={<Check className="h-4 w-4" strokeWidth={1.5} />}
+                className="text-[#4F7A3B] hover:bg-[#7FA35C]/10"
+                label="Approve"
+              />
+              <IconAction
+                title="Reject cancellation"
+                onClick={() => setActionTarget({ type: "reject", booking: r })}
+                icon={<X className="h-4 w-4" strokeWidth={1.5} />}
+                className="text-[#B3453A] hover:bg-[#C25B50]/10"
+                label="Reject"
+              />
+            </>
+          )}
         </div>
       ),
     },
@@ -458,6 +537,54 @@ export default function BookingsPage() {
 
   const { items = [], meta = {} } = bookingsQuery.data ?? {};
   const payments = paymentsQuery.data?.items ?? [];
+
+  const actionType = actionTarget?.type;
+  const dialogVariant =
+    actionType === "cancel" || actionType === "approve"
+      ? "danger"
+      : "default";
+
+const dialogTitle =
+    actionType === "confirm"
+      ? "Confirm this booking?"
+      : actionType === "checkin"
+        ? "Check in this guest?"
+        : actionType === "complete"
+          ? "Complete this booking?"
+          : actionType === "approve"
+            ? "Approve this cancellation request?"
+            : actionType === "reject"
+              ? "Reject this cancellation request?"
+              : "Cancel this booking?";
+
+const dialogDescription = (() => {
+    if (actionType === "checkin") {
+      return `Mark ${actionTarget?.booking?.booking_code} as in-house. The guest is now staying at the hotel.`;
+    }
+    if (actionType === "cancel") {
+      return "The guest will be notified. This cannot be undone.";
+    }
+    if (actionType === "reject") {
+      return "The booking will return to its previous status.";
+    }
+    if (actionType === "approve") {
+      return isRefundableBooking(actionTarget?.booking)
+        ? "This will mark the booking cancelled. The guest's deposit will be refunded."
+        : "This will mark the booking cancelled. This cancellation is within 48 hours of check-in, so the deposit will NOT be refunded.";
+    }
+    return `Booking ${actionTarget?.booking?.booking_code} will be marked as ${titleCase((actionType ?? "confirm") + "ed")}.`;
+  })();
+
+  const dialogConfirmLabel =
+    actionType === "approve"
+      ? "Approve cancellation"
+      : actionType === "reject"
+        ? "Reject request"
+        : actionType === "cancel"
+          ? "Cancel booking"
+          : actionType === "checkin"
+            ? "Check in"
+            : titleCase(actionType ?? "confirm");
 
   return (
     <div>
@@ -662,20 +789,10 @@ export default function BookingsPage() {
       <ConfirmDialog
         open={Boolean(actionTarget)}
         onOpenChange={(open) => !open && setActionTarget(null)}
-        variant={actionTarget?.type === "cancel" ? "danger" : "default"}
-        title={
-          actionTarget?.type === "confirm"
-            ? "Confirm this booking?"
-            : actionTarget?.type === "complete"
-              ? "Complete this booking?"
-              : "Cancel this booking?"
-        }
-        description={
-          actionTarget?.type === "cancel"
-            ? "The guest will be notified. This cannot be undone."
-            : `Booking ${actionTarget?.booking?.booking_code} will be marked as ${titleCase(actionTarget?.type + "ed")}.`
-        }
-        confirmLabel={titleCase(actionTarget?.type ?? "confirm")}
+        variant={dialogVariant}
+        title={dialogTitle}
+        description={dialogDescription}
+        confirmLabel={dialogConfirmLabel}
         loading={statusAction.isPending}
         onConfirm={() =>
           actionTarget && statusAction.mutate({ type: actionTarget.type, id: actionTarget.booking.id })

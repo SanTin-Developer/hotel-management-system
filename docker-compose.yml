@@ -69,6 +69,41 @@ services:
     networks:
       - hotel_network
 
+  scheduler:
+    image: hotel-management-system-backend
+    container_name: hotel_scheduler
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backend:/var/www
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      APP_ENV: local
+      APP_DEBUG: true
+
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: hotel_management
+      DB_USERNAME: hotel_user
+      DB_PASSWORD: hotel_password
+
+      CACHE_STORE: redis
+      QUEUE_CONNECTION: redis
+      SESSION_DRIVER: redis
+
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+    command: php artisan schedule:work
+
+    networks:
+      - hotel_network
+
   postgres:
     image: postgres:18
     container_name: hotel_postgres

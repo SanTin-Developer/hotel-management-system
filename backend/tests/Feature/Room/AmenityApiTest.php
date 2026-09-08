@@ -168,6 +168,31 @@ it('allows manager to update an amenity', function () {
     ]);
 });
 
+it('stores and returns khmer amenity fields', function () {
+    $admin = amenityApiUser('admin');
+
+    $response = $this
+        ->actingAs($admin, 'sanctum')
+        ->postJson('/api/v1/amenities', [
+            'name' => 'Free Wi-Fi',
+            'name_kh' => 'វ៉ាយហ្វាយឥតគិតថ្លៃ',
+            'description' => 'High speed internet',
+            'description_kh' => 'អ៊ីនធឺណិតល្បឿនលឿន',
+            'icon' => 'wifi',
+        ]);
+
+    $response
+        ->assertCreated()
+        ->assertJsonPath('data.name', 'Free Wi-Fi')
+        ->assertJsonPath('data.name_kh', 'វ៉ាយហ្វាយឥតគិតថ្លៃ')
+        ->assertJsonPath('data.description_kh', 'អ៊ីនធឺណិតល្បឿនលឿន');
+
+    $this->assertDatabaseHas('amenities', [
+        'name' => 'Free Wi-Fi',
+        'name_kh' => 'វ៉ាយហ្វាយឥតគិតថ្លៃ',
+    ]);
+});
+
 it('allows admin to delete an amenity', function () {
     $admin = amenityApiUser('admin');
 

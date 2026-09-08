@@ -25,7 +25,19 @@ class UpdateAmenityRequest extends FormRequest
                 Rule::unique('amenities', 'name')->ignore($amenityId),
             ],
 
+            'name_kh' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
             'description' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
+            'description_kh' => [
                 'nullable',
                 'string',
                 'max:1000',

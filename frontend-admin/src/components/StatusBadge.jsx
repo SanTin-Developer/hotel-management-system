@@ -1,6 +1,7 @@
 const STATUS_STYLES = {
   pending: "bg-[#D9A441]/12 text-[#A67C16] ring-[#D9A441]/25",
   confirmed: "bg-[#7FA35C]/12 text-[#4F7A3B] ring-[#7FA35C]/25",
+  in_house: "bg-[#3B6FB6]/12 text-[#2F5E87] ring-[#3B6FB6]/25",
   approved: "bg-[#7FA35C]/12 text-[#4F7A3B] ring-[#7FA35C]/25",
   paid: "bg-[#7FA35C]/12 text-[#4F7A3B] ring-[#7FA35C]/25",
   active: "bg-[#7FA35C]/12 text-[#4F7A3B] ring-[#7FA35C]/25",
@@ -9,6 +10,7 @@ const STATUS_STYLES = {
   cancelled: "bg-[#C25B50]/10 text-[#B3453A] ring-[#C25B50]/25",
   rejected: "bg-[#C25B50]/10 text-[#B3453A] ring-[#C25B50]/25",
   failed: "bg-[#C25B50]/10 text-[#B3453A] ring-[#C25B50]/25",
+  cancellation_requested: "bg-[#D9A441]/12 text-[#A67C16] ring-[#D9A441]/25",
   refunded: "bg-[#A8B39F]/15 text-[#5E6B5A] ring-[#A8B39F]/30",
   maintenance: "bg-[#D9A441]/12 text-[#A67C16] ring-[#D9A441]/25",
   cleaning: "bg-[#B5C9A4]/20 text-[#5E6B5A] ring-[#B5C9A4]/30",
@@ -20,6 +22,7 @@ const STATUS_STYLES = {
 const LABELS = {
   pending: "Pending",
   confirmed: "Confirmed",
+  in_house: "In-house",
   approved: "Approved",
   paid: "Paid",
   active: "Active",
@@ -29,6 +32,7 @@ const LABELS = {
   rejected: "Rejected",
   failed: "Failed",
   refunded: "Refunded",
+  cancellation_requested: "Cancellation requested",
   maintenance: "Maintenance",
   cleaning: "Cleaning",
   occupied: "Occupied",

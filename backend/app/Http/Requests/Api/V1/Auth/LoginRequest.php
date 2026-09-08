@@ -16,7 +16,7 @@ class LoginRequest extends FormRequest
         return [
             'email' => [
                 'required',
-                'email',
+                'string',
                 'max:255',
             ],
 
@@ -30,8 +30,8 @@ class LoginRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'email.required' => 'Email is required.',
-            'email.email' => 'Please provide a valid email address.',
+            'email.required' => 'Email or phone is required.',
+            'email.string' => 'Please provide a valid email address or phone number.',
             'password.required' => 'Password is required.',
         ];
     }

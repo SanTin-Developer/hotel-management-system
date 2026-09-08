@@ -44,6 +44,13 @@ class Room extends Model
         );
     }
 
+    public function images(): HasMany
+    {
+        return $this->hasMany(RoomImage::class)
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
+
     public function bookingItems(): HasMany
     {
         return $this->hasMany(BookingItem::class);

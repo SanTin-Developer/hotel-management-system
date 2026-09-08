@@ -26,6 +26,7 @@ class IndexBookingRequest extends FormRequest
                 Rule::in([
                     'pending',
                     'confirmed',
+                    'in_house',
                     'cancelled',
                     'completed',
                 ]),

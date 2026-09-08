@@ -27,7 +27,11 @@ class SendBookingConfirmationEmail implements ShouldQueue
                 'guest',
                 'bookingItems.room.roomType',
             ])
-            ->findOrFail($this->bookingId);
+            ->find($this->bookingId);
+
+        if (! $booking?->guest?->email) {
+            return;
+        }
 
         Mail::to($booking->guest->email)
             ->send(

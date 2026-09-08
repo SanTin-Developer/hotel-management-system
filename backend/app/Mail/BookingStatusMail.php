@@ -21,7 +21,7 @@ class BookingStatusMail extends Mailable
 
     public function envelope(): Envelope
     {
-        $label = ucfirst($this->newStatus);
+        $label = ucwords(str_replace('_', ' ', $this->newStatus));
 
         return new Envelope(
             subject: "Booking {$label} - {$this->booking->booking_code}",

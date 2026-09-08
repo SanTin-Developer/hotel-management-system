@@ -78,6 +78,34 @@ it('completes a confirmed booking', function () {
     ]);
 });
 
+it('checks in a confirmed booking', function () {
+    $booking = statusTestBooking('confirmed');
+
+    app(BookingService::class)->checkIn($booking);
+
+    expect($booking->refresh()->status)->toBe('in_house');
+
+    $this->assertDatabaseHas('booking_status_histories', [
+        'booking_id' => $booking->id,
+        'status' => 'in_house',
+    ]);
+});
+
+it('completes an in-house booking', function () {
+    $booking = statusTestBooking('in_house');
+
+    app(BookingService::class)->complete($booking);
+
+    expect($booking->refresh()->status)->toBe('completed');
+});
+
+it('cannot check in a pending booking', function () {
+    $booking = statusTestBooking();
+
+    expect(fn () => app(BookingService::class)->checkIn($booking))
+        ->toThrow(ValidationException::class);
+});
+
 it('cannot complete a pending booking', function () {
     $booking = statusTestBooking();
 

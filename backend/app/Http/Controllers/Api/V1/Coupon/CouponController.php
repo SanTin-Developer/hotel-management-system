@@ -11,6 +11,7 @@ use App\Models\Coupon;
 use App\Services\Coupon\CouponService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class CouponController extends Controller
@@ -18,6 +19,24 @@ class CouponController extends Controller
     public function __construct(
         private readonly CouponService $couponService
     ) {}
+
+    /**
+     * Public endpoint: returns coupons currently active for the website.
+     */
+    public function active(): AnonymousResourceCollection
+    {
+        $now = now();
+
+        return CouponResource::collection(
+            Coupon::query()
+                ->where('status', 'active')
+                ->where('start_date', '<=', $now)
+                ->where('end_date', '>=', $now)
+                ->orderBy('end_date')
+                ->limit(12)
+                ->get()
+        );
+    }
 
     public function index(
         IndexCouponRequest $request
@@ -27,6 +46,55 @@ class CouponController extends Controller
                 $request->validated()
             )
         );
+    }
+
+    /**
+     * Public endpoint: validates a coupon code for the website checkout.
+     */
+    public function validateCode(string $code, Request $request): JsonResponse
+    {
+        $coupon = Coupon::query()
+            ->where('code', strtoupper(trim($code)))
+            ->where('status', 'active')
+            ->first();
+
+        if (! $coupon) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'This code is invalid or no longer available.',
+                'coupon' => null,
+            ]);
+        }
+
+        $now = now();
+
+        if (
+            $coupon->start_date && $now->lt($coupon->start_date)
+            || $coupon->end_date && $now->gt($coupon->end_date)
+        ) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'This offer has expired or is not active yet.',
+                'coupon' => new CouponResource($coupon),
+            ]);
+        }
+
+        $amount = (float) $request->float('amount', 0);
+
+        if ($amount > 0 && $coupon->min_amount && $amount < (float) $coupon->min_amount) {
+            return response()->json([
+                'valid' => false,
+                'message' => 'Minimum booking amount for this code is $'
+                    . number_format((float) $coupon->min_amount, 2).'.',
+                'coupon' => new CouponResource($coupon),
+            ]);
+        }
+
+        return response()->json([
+            'valid' => true,
+            'message' => 'Code applied successfully!',
+            'coupon' => new CouponResource($coupon),
+        ]);
     }
 
     public function store(StoreCouponRequest $request): JsonResponse

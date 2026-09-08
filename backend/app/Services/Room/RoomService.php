@@ -47,6 +47,22 @@ class RoomService
     public function delete(Room $room): void
     {
         DB::transaction(function () use ($room) {
+            $publicIds = $room->images()
+                ->pluck('image_public_id')
+                ->filter()
+                ->values()
+                ->all();
+
+            $room->images()->delete();
+
+            if ($room->image_public_id && ! in_array($room->image_public_id, $publicIds, true)) {
+                $publicIds[] = $room->image_public_id;
+            }
+
+            foreach ($publicIds as $publicId) {
+                $this->cloudinary->destroy($publicId);
+            }
+
             $room->delete();
         });
     }
@@ -101,44 +117,59 @@ class RoomService
     public function uploadImage(Room $room, UploadedFile $file): Room
     {
         return DB::transaction(function () use ($room, $file) {
-            $previous = $room->image_public_id;
-
             $upload = $this->cloudinary->upload(
                 $file,
                 'hotel/rooms'
             );
 
-            $room->update([
+            $sortOrder = $room->images()->max('sort_order') ?? -1;
+
+            $room->images()->create([
                 'image_url' => $upload['secure_url'],
                 'image_public_id' => $upload['public_id'],
+                'sort_order' => $sortOrder + 1,
             ]);
 
-            if ($previous) {
-                $this->cloudinary->destroy($previous);
+            if (! $room->image_url) {
+                $room->update([
+                    'image_url' => $upload['secure_url'],
+                    'image_public_id' => $upload['public_id'],
+                ]);
             }
 
             return $room->refresh()
-                ->load('roomType')
+                ->load(['roomType', 'images'])
                 ->loadCount('bookingItems');
         });
     }
 
-    public function removeImage(Room $room): Room
+    public function removeImage(Room $room, int $imageId): Room
     {
-        return DB::transaction(function () use ($room) {
-            $publicId = $room->image_public_id;
+        return DB::transaction(function () use ($room, $imageId) {
+            $image = $room->images()->findOrFail($imageId);
 
-            $room->update([
-                'image_url' => null,
-                'image_public_id' => null,
-            ]);
+            if ($image->image_public_id) {
+                $this->cloudinary->destroy($image->image_public_id);
+            }
 
-            if ($publicId) {
-                $this->cloudinary->destroy($publicId);
+            $wasCover = $room->image_url === $image->image_url;
+
+            $image->delete();
+
+            if ($wasCover) {
+                $next = $room->images()
+                    ->orderBy('sort_order')
+                    ->orderBy('id')
+                    ->first();
+
+                $room->update([
+                    'image_url' => $next?->image_url,
+                    'image_public_id' => $next?->image_public_id,
+                ]);
             }
 
             return $room->refresh()
-                ->load('roomType')
+                ->load(['roomType', 'images'])
                 ->loadCount('bookingItems');
         });
     }

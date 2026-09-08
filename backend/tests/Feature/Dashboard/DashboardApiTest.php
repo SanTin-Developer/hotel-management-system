@@ -239,6 +239,90 @@ it('returns the complete dashboard summary', function () {
         ->not->toBeEmpty();
 });
 
+it('hides unpaid pending bookings but shows pending with a paid deposit', function () {
+    $user = fullDashboardUser();
+    $roomType = fullDashboardRoomType();
+
+    fullDashboardRoom($roomType, '101', 'available');
+
+    $guest = fullDashboardGuest();
+
+    $unpaidBooking = Booking::create([
+        'booking_code' => 'DASH-PENDING-001',
+        'guest_id' => $guest->id,
+        'check_in' => now()->toDateString(),
+        'check_out' => now()->addDays(2)->toDateString(),
+        'adults' => 2,
+        'children' => 0,
+        'total_amount' => 200,
+        'booking_source' => 'website',
+        'status' => 'pending',
+    ]);
+
+    $paidPendingBooking = Booking::create([
+        'booking_code' => 'DASH-PAID-PENDING',
+        'guest_id' => $guest->id,
+        'check_in' => now()->toDateString(),
+        'check_out' => now()->addDays(2)->toDateString(),
+        'adults' => 2,
+        'children' => 0,
+        'total_amount' => 300,
+        'deposit_rate' => 20,
+        'deposit_amount' => 60,
+        'booking_source' => 'website',
+        'status' => 'pending',
+    ]);
+
+    Payment::create([
+        'booking_id' => $paidPendingBooking->id,
+        'amount' => 60,
+        'payment_method' => 'aba',
+        'transaction_id' => 'DASH-DEPOSIT-001',
+        'status' => 'paid',
+        'paid_at' => now(),
+    ]);
+
+    $confirmedBooking = Booking::create([
+        'booking_code' => 'DASH-CONFIRMED-001',
+        'guest_id' => $guest->id,
+        'check_in' => now()->toDateString(),
+        'check_out' => now()->addDays(2)->toDateString(),
+        'adults' => 2,
+        'children' => 0,
+        'total_amount' => 400,
+        'booking_source' => 'website',
+        'status' => 'confirmed',
+    ]);
+
+    $response = $this
+        ->actingAs($user, 'sanctum')
+        ->getJson('/api/v1/dashboard/summary');
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.stats.today_bookings', 2)
+        ->assertJsonPath('data.booking_overview.confirmed', 1)
+        ->assertJsonPath('data.booking_overview.pending', 1);
+
+    $recentCodes = collect($response->json('data.recent_bookings'))
+        ->pluck('booking_code')
+        ->all();
+
+    expect($recentCodes)
+        ->toHaveCount(2)
+        ->toContain($paidPendingBooking->booking_code)
+        ->toContain($confirmedBooking->booking_code)
+        ->not->toContain($unpaidBooking->booking_code);
+
+    $activityCodes = collect($response->json('data.recent_activities'))
+        ->pluck('booking.booking_code')
+        ->all();
+
+    expect($activityCodes)
+        ->toHaveCount(2)
+        ->not->toContain($unpaidBooking->booking_code);
+});
+
 it('returns zero values when the database has no dashboard data', function () {
     $user = fullDashboardUser();
 

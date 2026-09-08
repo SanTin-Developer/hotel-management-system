@@ -2,160 +2,311 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Booking {{ ucfirst($newStatus) }}</title>
+    <title>Booking {{ ucwords(str_replace('_', ' ', $newStatus)) }}</title>
 </head>
 
 <body style="
     margin: 0;
     padding: 0;
-    background-color: #f5f5f5;
-    font-family: Arial, Helvetica, sans-serif;
+    background-color: #F8F9F4;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #1E2B22;
 ">
 
-<div style="
-    max-width: 650px;
-    margin: 40px auto;
-    background: #ffffff;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0"
+           style="background-color: #F8F9F4; padding: 40px 15px;">
+        <tr>
+            <td align="center">
 
-    {{-- Header --}}
-    <div style="
-        padding: 30px;
-        text-align: center;
-        background-color: #1f2937;
-        color: #ffffff;
-    ">
-        <h1 style="margin: 0;">
-            Hotel Management System
-        </h1>
+                <!-- Main Container -->
+                <table width="600" cellpadding="0" cellspacing="0" border="0"
+                       style="
+                            max-width: 600px;
+                            width: 100%;
+                            background-color: #FFFFFF;
+                            border: 1px solid #DCE3D5;
+                            border-radius: 14px;
+                            overflow: hidden;
+                            box-shadow: 0 8px 24px rgba(30, 43, 34, 0.06);
+                       ">
 
-        <p style="
-            margin: 10px 0 0;
-            font-size: 16px;
-        ">
-            Booking Update
-        </p>
-    </div>
+                    <!-- Header -->
+                    <tr>
+                        <td align="center"
+                            style="
+                                background-color: #16261F;
+                                padding: 34px 30px;
+                            ">
 
-    {{-- Content --}}
-    <div style="padding: 30px;">
+                            <img src="https://res.cloudinary.com/drercy9vt/image/upload/v1788588116/Gemini_Generated_Image_m6go6vm6go6vm6go-removebg-preview_guzd4n.png"
+                                 alt="Kumpuchea Otel"
+                                 width="44"
+                                 height="44"
+                                 style="
+                                    display: block;
+                                    margin: 0 auto 12px;
+                                    border-radius: 10px;
+                                    border: 1px solid rgba(157, 190, 124, 0.5);
+                                 ">
 
-        <h2 style="margin-top: 0;">
-            Dear {{ $booking->guest->full_name }},
-        </h2>
+                            <div style="
+                                font-family: Georgia, 'Times New Roman', serif;
+                                font-weight: 600;
+                                font-size: 26px;
+                                color: #F2F5EC;
+                                letter-spacing: 0.5px;
+                            ">
+                                Kumpuchea Otel
+                            </div>
 
-        <p>
-            The status of your booking has been updated.
-        </p>
+                            <div style="
+                                margin-top: 8px;
+                                font-size: 11px;
+                                color: #7FA35C;
+                                letter-spacing: 3px;
+                                text-transform: uppercase;
+                            ">
+                                Management System
+                            </div>
 
-        {{-- Status badge --}}
-        <div style="
-            margin-top: 25px;
-            padding: 20px;
-            background-color: #f9fafb;
-            border-radius: 8px;
-            text-align: center;
-        ">
-            <p style="
-                margin: 0;
-                color: #6b7280;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                font-size: 13px;
-            ">
-                New Status
-            </p>
+                        </td>
+                    </tr>
 
-            <p style="
-                margin: 10px 0 0;
-                font-size: 26px;
-                font-weight: bold;
-                color: #1f2937;
-            ">
-                {{ ucfirst($newStatus) }}
-            </p>
-        </div>
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 38px 45px 28px;">
 
-        {{-- Booking information --}}
-        <div style="
-            margin-top: 25px;
-            padding: 20px;
-            background-color: #f9fafb;
-            border-radius: 8px;
-        ">
-            <h3 style="margin-top: 0;">
-                Booking Information
-            </h3>
+                            <h2 style="
+                                margin: 0 0 20px;
+                                color: #16261F;
+                                font-family: Georgia, 'Times New Roman', serif;
+                                font-weight: 600;
+                                font-size: 24px;
+                            ">
+                                Booking Update
+                            </h2>
 
-            <p>
-                <strong>Booking Code:</strong>
-                {{ $booking->booking_code }}
-            </p>
+                            <p style="
+                                margin: 0 0 16px;
+                                font-size: 15px;
+                                line-height: 1.7;
+                                color: #5E6B5A;
+                            ">
+                                Dear <strong style="color: #1E2B22;">{{ $booking->guest->full_name }}</strong>,
+                            </p>
 
-            <p>
-                <strong>Check-in:</strong>
-                {{ $booking->check_in->format('M d, Y') }}
-            </p>
+                            <p style="
+                                margin: 0 0 22px;
+                                font-size: 14px;
+                                line-height: 1.7;
+                                color: #5E6B5A;
+                            ">
+                                The status of your booking with&nbsp;
+                                <strong style="color: #16261F;">Kumpuchea Otel</strong>
+                                has been updated.
+                            </p>
 
-            <p>
-                <strong>Check-out:</strong>
-                {{ $booking->check_out->format('M d, Y') }}
-            </p>
+                            <!-- Status Box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td align="center"
+                                        style="
+                                            padding: 24px 20px;
+                                            background-color: #F1F3ED;
+                                            border: 1px solid #DCE3D5;
+                                            border-radius: 12px;
+                                        ">
 
-            <p>
-                <strong>Total Amount:</strong>
-                ${{ number_format((float) $booking->total_amount, 2) }}
-            </p>
-        </div>
+                                        <div style="
+                                            font-size: 11px;
+                                            color: #7A8677;
+                                            text-transform: uppercase;
+                                            letter-spacing: 2px;
+                                            margin-bottom: 12px;
+                                        ">
+                                            New Status
+                                        </div>
 
-        @if ($note)
+                                        <div style="
+                                            font-family: Georgia, 'Times New Roman', serif;
+                                            font-size: 30px;
+                                            font-weight: 600;
+                                            letter-spacing: 2px;
+                                            color: #16261F;
+                                        ">
+                                            {{ ucwords(str_replace('_', ' ', $newStatus)) }}
+                                        </div>
 
-            <div style="margin-top: 25px; padding: 20px; background-color: #fffbeb; border-radius: 8px;">
+                                    </td>
+                                </tr>
+                            </table>
 
-                <h3 style="margin-top: 0; color: #92400e;">
-                    Note
-                </h3>
+                            <!-- Booking Details -->
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                                   style="margin-top: 26px;">
+                                <tr>
+                                    <td style="
+                                        background-color: #F1F3ED;
+                                        border: 1px solid #DCE3D5;
+                                        border-radius: 12px;
+                                        padding: 24px 22px;
+                                    ">
 
-                <p style="margin: 0; color: #78350f;">
-                    {{ $note }}
-                </p>
+                                        <div style="
+                                            font-size: 11px;
+                                            color: #7A8677;
+                                            text-transform: uppercase;
+                                            letter-spacing: 2px;
+                                            margin-bottom: 18px;
+                                        ">
+                                            Booking Information
+                                        </div>
 
-            </div>
+                                        <!-- Booking Code -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                                               style="margin-bottom: 14px;">
+                                            <tr>
+                                                <td style="font-size: 13px; color: #7A8677; width: 120px;">
+                                                    Booking Code
+                                                </td>
+                                                <td style="font-size: 14px; color: #1E2B22; font-weight: 600;">
+                                                    {{ $booking->booking_code }}
+                                                </td>
+                                            </tr>
+                                        </table>
 
-        @endif
+                                        <!-- Check-in -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                                               style="margin-bottom: 14px;">
+                                            <tr>
+                                                <td style="font-size: 13px; color: #7A8677; width: 120px;">
+                                                    Check-in
+                                                </td>
+                                                <td style="font-size: 14px; color: #1E2B22; font-weight: 600;">
+                                                    {{ $booking->check_in->format('M d, Y') }}
+                                                </td>
+                                            </tr>
+                                        </table>
 
-        <p style="margin-top: 30px;">
-            If you have any questions, please contact our support team.
-        </p>
+                                        <!-- Check-out -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                                               style="margin-bottom: 14px;">
+                                            <tr>
+                                                <td style="font-size: 13px; color: #7A8677; width: 120px;">
+                                                    Check-out
+                                                </td>
+                                                <td style="font-size: 14px; color: #1E2B22; font-weight: 600;">
+                                                    {{ $booking->check_out->format('M d, Y') }}
+                                                </td>
+                                            </tr>
+                                        </table>
 
-        <p>
-            Best regards,<br>
-            <strong>Kampuchea Otel Team</strong>
-        </p>
+                                        <!-- Total Amount -->
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="font-size: 13px; color: #7A8677; width: 120px;">
+                                                    Total Amount
+                                                </td>
+                                                <td style="font-size: 14px; color: #16261F; font-weight: 600;">
+                                                    ${{ number_format((float) $booking->total_amount, 2) }}
+                                                </td>
+                                            </tr>
+                                        </table>
 
-    </div>
+                                    </td>
+                                </tr>
+                            </table>
 
-    {{-- Footer --}}
-    <div style="
-        padding: 20px;
-        text-align: center;
-        background-color: #f3f4f6;
-        color: #6b7280;
-        font-size: 13px;
-    ">
+                            @if ($note)
+                                <!-- Note -->
+                                <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                                       style="margin-top: 26px;">
+                                    <tr>
+                                        <td style="
+                                            background-color: #EEF1E9;
+                                            border-left: 4px solid #7FA35C;
+                                            border-radius: 8px;
+                                            padding: 14px 16px;
+                                        ">
+                                            <div style="
+                                                font-size: 11px;
+                                                color: #7A8677;
+                                                text-transform: uppercase;
+                                                letter-spacing: 2px;
+                                                margin-bottom: 8px;
+                                            ">
+                                                Note
+                                            </div>
+                                            <p style="
+                                                margin: 0;
+                                                font-size: 14px;
+                                                line-height: 1.6;
+                                                color: #5E6B5A;
+                                            ">
+                                                {{ $note }}
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            @endif
 
-        This is an automated email.
-        Please do not reply directly to this message.
+                            <!-- Closing -->
+                            <p style="
+                                margin: 28px 0 0;
+                                font-size: 14px;
+                                line-height: 1.7;
+                                color: #5E6B5A;
+                            ">
+                                If you have any questions, please contact our support team.
+                            </p>
 
-    </div>
+                            <p style="
+                                margin: 20px 0 0;
+                                font-size: 14px;
+                                line-height: 1.7;
+                                color: #5E6B5A;
+                            ">
+                                Regards,<br>
+                                <strong style="color: #16261F;">Kumpuchea Otel Team</strong>
+                            </p>
 
-</div>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center"
+                            style="
+                                background-color: #F1F3ED;
+                                padding: 22px 30px;
+                                border-top: 1px solid #DCE3D5;
+                            ">
+
+                            <p style="
+                                margin: 0 0 6px;
+                                font-size: 12px;
+                                color: #7A8677;
+                            ">
+                                This is an automated email. Please do not reply.
+                            </p>
+
+                            <p style="
+                                margin: 0;
+                                font-size: 12px;
+                                color: #A8B39F;
+                            ">
+                                &copy; {{ date('Y') }} Kumpuchea Otel. All rights reserved.
+                            </p>
+
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
 
 </body>
 </html>

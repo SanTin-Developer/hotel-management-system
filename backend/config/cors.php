@@ -19,7 +19,13 @@ return [
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => explode(',', env('FRONTEND_URL', 'http://localhost:5173')),
+    // SPA frontends authenticate with Bearer tokens (Authorization header),
+    // not cookies, so any origin may be permitted for local development.
+    // In production, restrict this by setting FRONTEND_URL to a comma-
+    // separated list of approved origins.
+    'allowed_origins' => env('FRONTEND_URL')
+        ? array_map('trim', explode(',', env('FRONTEND_URL')))
+        : ['*'],
 
     'allowed_origins_patterns' => [],
 
@@ -29,6 +35,6 @@ return [
 
     'max_age' => 0,
 
-    'supports_credentials' => true,
+    'supports_credentials' => false,
 
 ];

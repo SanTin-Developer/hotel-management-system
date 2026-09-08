@@ -32,6 +32,9 @@ Route::prefix('v1/auth')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
+        Route::put('/me', [AuthController::class, 'updateMe']);
+        Route::post('/me/photo', [AuthController::class, 'uploadMePhoto']);
+        Route::delete('/me/photo', [AuthController::class, 'removeMePhoto']);
     });
 });
 
@@ -95,7 +98,7 @@ Route::prefix('v1/rooms')->group(function () {
         ->post('/{room}/image', [RoomController::class, 'uploadImage']);
 
     Route::middleware(['auth:sanctum', 'permission:rooms.update'])
-        ->delete('/{room}/image', [RoomController::class, 'removeImage']);
+        ->delete('/{room}/images/{image}', [RoomController::class, 'removeImage']);
 
     Route::middleware(['auth:sanctum', 'permission:rooms.update'])
         ->put('/{room}/status', RoomStatusController::class);
@@ -147,8 +150,35 @@ Route::prefix('v1/bookings')->group(function () {
 
     Route::middleware([
         'auth:sanctum',
+        'permission:bookings.checkin',
+    ])->post('/{booking}/check-in', [BookingController::class, 'checkIn']);
+
+    Route::middleware([
+        'auth:sanctum',
         'permission:bookings.cancel',
     ])->post('/{booking}/cancel', [BookingController::class, 'cancel']);
+
+    Route::middleware('auth:sanctum')
+        ->post('/{booking}/request-cancellation', [
+            BookingController::class,
+            'requestCancellation',
+        ]);
+
+    Route::middleware([
+        'auth:sanctum',
+        'permission:bookings.cancel',
+    ])->post('/{booking}/approve-cancellation', [
+        BookingController::class,
+        'approveCancellation',
+    ]);
+
+    Route::middleware([
+        'auth:sanctum',
+        'permission:bookings.cancel',
+    ])->post('/{booking}/reject-cancellation', [
+        BookingController::class,
+        'rejectCancellation',
+    ]);
 
     Route::middleware([
         'auth:sanctum',
@@ -163,6 +193,9 @@ Route::prefix('v1/bookings')->group(function () {
         'permission:payments.create',
         'throttle:payment-create',
     ])->post('/{booking}/payments', [BookingPaymentController::class, 'store']);
+
+    Route::middleware(['auth:sanctum', 'throttle:payment-create'])
+        ->post('/{booking}/deposit-payment', [BookingPaymentController::class, 'deposit']);
 });
 
 // Payment API-EndPoint
@@ -208,25 +241,39 @@ Route::prefix('v1/guests')
     });
 
 // Coupon API-EndPoint
-Route::prefix('v1/coupons')
-    ->middleware('auth:sanctum')
-    ->group(function () {
+Route::prefix('v1/coupons')->group(function () {
 
-        Route::middleware('permission:coupons.view')
-            ->get('/', [CouponController::class, 'index']);
+    Route::get('/active', [
+        CouponController::class,
+        'active',
+    ])->middleware('throttle:public-api');
 
-        Route::middleware('permission:coupons.view')
-            ->get('/{coupon}', [CouponController::class, 'show']);
+    Route::get('/validate/{code}', [
+        CouponController::class,
+        'validateCode',
+    ])->middleware('throttle:public-api');
 
-        Route::middleware('permission:coupons.create')
-            ->post('/', [CouponController::class, 'store']);
+    Route::get('/{coupon}', [
+        CouponController::class,
+        'show',
+    ])->middleware(['auth:sanctum', 'permission:coupons.view']);
 
-        Route::middleware('permission:coupons.update')
-            ->put('/{coupon}', [CouponController::class, 'update']);
+    Route::middleware('auth:sanctum')
+        ->group(function () {
 
-        Route::middleware('permission:coupons.delete')
-            ->delete('/{coupon}', [CouponController::class, 'destroy']);
-    });
+            Route::middleware('permission:coupons.view')
+                ->get('/', [CouponController::class, 'index']);
+
+            Route::middleware('permission:coupons.create')
+                ->post('/', [CouponController::class, 'store']);
+
+            Route::middleware('permission:coupons.update')
+                ->put('/{coupon}', [CouponController::class, 'update']);
+
+            Route::middleware('permission:coupons.delete')
+                ->delete('/{coupon}', [CouponController::class, 'destroy']);
+        });
+});
 
 // Review API-EndPoint
 Route::prefix('v1/reviews')->group(function () {

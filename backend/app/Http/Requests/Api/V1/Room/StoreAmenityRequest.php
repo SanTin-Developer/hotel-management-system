@@ -21,7 +21,19 @@ class StoreAmenityRequest extends FormRequest
                 'unique:amenities,name',
             ],
 
+            'name_kh' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
             'description' => [
+                'nullable',
+                'string',
+                'max:1000',
+            ],
+
+            'description_kh' => [
                 'nullable',
                 'string',
                 'max:1000',

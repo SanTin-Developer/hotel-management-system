@@ -38,6 +38,7 @@ class PermissionSeeder extends Seeder
             'bookings.update',
             'bookings.cancel',
             'bookings.confirm',
+            'bookings.checkin',
             'bookings.complete',
 
             // Payments

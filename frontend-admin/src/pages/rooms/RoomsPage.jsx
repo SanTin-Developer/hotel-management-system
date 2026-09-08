@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import { Plus, Pencil, Trash2, ImagePlus, Layers } from "lucide-react";
+import { Plus, Pencil, Trash2, ImagePlus, Layers, X } from "lucide-react";
 import { toast } from "sonner";
 
 import PageHeader from "@/components/PageHeader";
@@ -14,7 +14,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import DetailModal from "@/components/DetailModal";
 import FormModal, { FormActions } from "@/components/FormModal";
 import { LoadingState, ErrorState } from "@/components/States";
-import { TextField, SelectField, TextAreaField, ImageField } from "@/components/form/Inputs";
+import { TextField, SelectField, TextAreaField } from "@/components/form/Inputs";
 import {
   fetchRooms,
   fetchRoomTypes,
@@ -24,7 +24,9 @@ import {
   changeRoomStatus,
   uploadRoomImage,
   deleteRoomImage,
+  syncRoomAmenities,
 } from "@/services/api/rooms";
+import { fetchAmenities } from "@/services/api/amenities";
 import { getErrorMessage, formatCurrency } from "@/lib/format";
 
 const ROOM_STATUSES = [
@@ -43,7 +45,7 @@ const EMPTY_FORM = {
   description: "",
 };
 
-function RoomForm({ room, roomTypes, onSuccess }) {
+function RoomForm({ room, roomTypes, amenities, onSuccess }) {
   const queryClient = useQueryClient();
   const isEdit = Boolean(room);
   const [form, setForm] = useState(
@@ -57,8 +59,14 @@ function RoomForm({ room, roomTypes, onSuccess }) {
         }
       : EMPTY_FORM,
   );
-  const [image, setImage] = useState(null);
-  const [removeImage, setRemoveImage] = useState(false);
+  const [amenityIds, setAmenityIds] = useState(
+    isEdit ? (room?.amenities ?? []).map((a) => a.id) : [],
+  );
+  const [existingImages, setExistingImages] = useState(
+    isEdit ? (room?.images ?? []) : [],
+  );
+  const [pendingImages, setPendingImages] = useState([]);
+  const [removedImages, setRemovedImages] = useState([]);
   const [errors, setErrors] = useState({});
 
   const mutation = useMutation({
@@ -69,12 +77,18 @@ function RoomForm({ room, roomTypes, onSuccess }) {
 
       const id = saved.id ?? room?.id;
 
-      if (removeImage && id) {
-        await deleteRoomImage(id).catch(() => {});
+      await syncRoomAmenities(id, amenityIds).catch(() => {});
+
+      if (removedImages.length && id) {
+        await Promise.all(
+          removedImages.map((img) => deleteRoomImage(id, img.id).catch(() => {})),
+        );
       }
 
-      if (image && id) {
-        await uploadRoomImage(id, image);
+      if (pendingImages.length && id) {
+        await Promise.all(
+          pendingImages.map((file) => uploadRoomImage(id, file)),
+        );
       }
 
       return saved;
@@ -90,6 +104,12 @@ function RoomForm({ room, roomTypes, onSuccess }) {
   function set(field, value) {
     setForm((f) => ({ ...f, [field]: value }));
     setErrors((e) => ({ ...e, [field]: undefined }));
+  }
+
+  function toggleAmenity(id) {
+    setAmenityIds((ids) =>
+      ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id],
+    );
   }
 
   function handleSubmit(e) {
@@ -149,21 +169,107 @@ function RoomForm({ room, roomTypes, onSuccess }) {
         />
       </div>
       <div className="mt-4">
-        <ImageField
-          label="Image"
-          name="image"
-          value={image}
-          onChange={(v) => {
-            setImage(v);
-            if (v) setRemoveImage(false);
-          }}
-          initialUrl={isEdit ? room.image_url : undefined}
-          onRemove={() => {
-            setRemoveImage(true);
-            setImage(null);
-          }}
-          hint={image ? "Uploaded when you save." : "Choose a photo for this room."}
-        />
+        <p className="mb-1.5 text-sm font-medium text-[#1E2B22]">Amenities</p>
+        {amenities.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-[#DCE3D5] px-4 py-3 text-sm text-[#7A8677]">
+            No amenities available. Create them in the Amenities section first.
+          </p>
+        ) : (
+          <div className="grid max-h-44 grid-cols-1 gap-1.5 overflow-y-auto rounded-lg border border-[#DCE3D5] p-2 sm:grid-cols-2">
+            {amenities.map((a) => (
+              <label
+                key={a.id}
+                className={`flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors ${
+                  amenityIds.includes(a.id)
+                    ? "bg-[#7FA35C]/10 text-[#1E2B22]"
+                    : "text-[#5E6B5A] hover:bg-[#F1F3ED]"
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  checked={amenityIds.includes(a.id)}
+                  onChange={() => toggleAmenity(a.id)}
+                  className="h-4 w-4 accent-[#7FA35C]"
+                />
+                <span className="truncate">{a.name}</span>
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="mt-4">
+        <p className="mb-1.5 text-sm font-medium text-[#1E2B22]">Photos</p>
+        <div className="flex flex-wrap gap-3">
+          {existingImages.map((img) => (
+            <div
+              key={`existing-${img.id}`}
+              className="relative h-20 w-28 overflow-hidden rounded-lg border border-[#DCE3D5] bg-[#EEF1E9]"
+            >
+              <img
+                src={img.image_url}
+                alt={`Room photo ${img.sort_order + 1}`}
+                className="h-full w-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setRemovedImages((imgs) => [...imgs, img]);
+                  setExistingImages((imgs) => imgs.filter((x) => x.id !== img.id));
+                }}
+                aria-label="Remove photo"
+                className="absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/55 text-white transition-colors hover:bg-[#C25B50]"
+              >
+                <X className="size-3.5" strokeWidth={2} />
+              </button>
+            </div>
+          ))}
+          {pendingImages.map((file, index) => (
+            <div
+              key={`pending-${file.name}-${index}`}
+              className="relative h-20 w-28 overflow-hidden rounded-lg border border-[#DCE3D5] bg-[#EEF1E9]"
+            >
+              <img
+                src={URL.createObjectURL(file)}
+                alt={file.name}
+                className="h-full w-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  setPendingImages((files) => files.filter((_, i) => i !== index))
+                }
+                aria-label="Remove photo"
+                className="absolute right-1 top-1 grid size-6 place-items-center rounded-full bg-black/55 text-white transition-colors hover:bg-[#C25B50]"
+              >
+                <X className="size-3.5" strokeWidth={2} />
+              </button>
+            </div>
+          ))}
+          <label
+            className="flex h-20 w-28 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-dashed border-[#DCE3D5] bg-[#F8F9F4] text-sm font-medium text-[#7A8677] transition-colors hover:bg-[#F1F3ED] hover:text-[#4F7A3B]"
+            role="button"
+            aria-label="Add photos"
+          >
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(e) => {
+                const files = Array.from(e.target.files ?? []);
+                if (files.length) setPendingImages((prev) => [...prev, ...files]);
+                e.target.value = "";
+              }}
+            />
+            <ImagePlus className="size-5" strokeWidth={1.5} />
+            <span className="text-center leading-tight">Add<br />photos</span>
+          </label>
+        </div>
+        <p className="mt-1.5 text-xs text-[#7A8677]">
+          {isEdit
+            ? "Photos are uploaded or removed when you save."
+            : "Choose one or more photos for this room. They are uploaded when you save."}
+        </p>
       </div>
       <div className="mt-4">
         <TextAreaField
@@ -212,6 +318,11 @@ export default function RoomsPage() {
     queryFn: fetchRoomTypes,
   });
 
+  const amenitiesQuery = useQuery({
+    queryKey: ["amenities"],
+    queryFn: fetchAmenities,
+  });
+
   const deleteMutation = useMutation({
     mutationFn: deleteRoom,
     onSuccess: () => {
@@ -231,13 +342,13 @@ export default function RoomsPage() {
     onError: (error) => toast.error(getErrorMessage(error, "Could not update status.")),
   });
 
-  function handleImageUpload(file) {
-    if (!file || !imageTargetId) return;
+  function handleImageUpload(files) {
+    if (!files?.length || !imageTargetId) return;
     const id = imageTargetId;
     setImageTargetId(null);
-    uploadRoomImage(id, file)
+    Promise.all([...files].map((file) => uploadRoomImage(id, file)))
       .then(() => {
-        toast.success("Room image uploaded.");
+        toast.success(files.length > 1 ? "Room photos uploaded." : "Room photo uploaded.");
         queryClient.invalidateQueries({ queryKey: ["rooms"] });
       })
       .catch((error) => toast.error(getErrorMessage(error, "Upload failed.")));
@@ -363,6 +474,7 @@ export default function RoomsPage() {
   }
 
   const roomTypes = roomTypesQuery.data?.items ?? [];
+  const amenities = amenitiesQuery.data?.items ?? [];
   const { items = [], meta = {} } = roomsQuery.data ?? {};
 
   return (
@@ -474,6 +586,7 @@ export default function RoomsPage() {
           key={editing?.id ?? "new"}
           room={editing}
           roomTypes={roomTypes}
+          amenities={amenities}
           onSuccess={() => {
             setFormOpen(false);
             setEditing(null);
@@ -485,9 +598,10 @@ export default function RoomsPage() {
         ref={hiddenImageInput}
         type="file"
         accept="image/*"
+        multiple
         className="hidden"
         onChange={(e) => {
-          handleImageUpload(e.target.files?.[0]);
+          handleImageUpload(e.target.files);
           e.target.value = "";
         }}
       />

@@ -127,9 +127,9 @@ class RoomController extends Controller
         return new RoomResource($room);
     }
 
-    public function removeImage(Room $room): RoomResource
+    public function removeImage(Room $room, int $image): RoomResource
     {
-        $room = $this->roomService->removeImage($room);
+        $room = $this->roomService->removeImage($room, $image);
 
         return new RoomResource($room);
     }

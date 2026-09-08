@@ -79,12 +79,64 @@ class BookingController extends Controller
         return new BookingResource($booking);
     }
 
+    public function checkIn(
+        Booking $booking
+    ): BookingResource {
+        request()->user()->can('checkIn', $booking);
+
+        $booking = $this->bookingService->checkIn(
+            $booking,
+            request()->user()->id
+        );
+
+        return new BookingResource($booking);
+    }
+
     public function cancel(
         Booking $booking
     ): BookingResource {
         request()->user()->can('cancel', $booking);
 
         $booking = $this->bookingService->cancel(
+            $booking,
+            request()->user()->id
+        );
+
+        return new BookingResource($booking);
+    }
+
+    public function requestCancellation(
+        Booking $booking
+    ): BookingResource {
+        request()->user()->can('requestCancellation', $booking);
+
+        $booking = $this->bookingService->requestCancellation(
+            $booking,
+            request()->user()->id
+        );
+
+        return new BookingResource($booking);
+    }
+
+    public function approveCancellation(
+        Booking $booking
+    ): BookingResource {
+        request()->user()->can('cancel', $booking);
+
+        $booking = $this->bookingService->approveCancellation(
+            $booking,
+            request()->user()->id
+        );
+
+        return new BookingResource($booking);
+    }
+
+    public function rejectCancellation(
+        Booking $booking
+    ): BookingResource {
+        request()->user()->can('cancel', $booking);
+
+        $booking = $this->bookingService->rejectCancellation(
             $booking,
             request()->user()->id
         );

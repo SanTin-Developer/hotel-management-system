@@ -39,7 +39,7 @@ class BookingPaymentController extends Controller
             'payment_method' => [
                 'required',
                 'string',
-                'in:cash,card,bank_transfer,online',
+                'in:cash,card,bank_transfer,online,aba,wing,acleda',
             ],
 
             'transaction_id' => [
@@ -52,6 +52,47 @@ class BookingPaymentController extends Controller
         $data['booking_id'] = $booking->id;
 
         $payment = $this->paymentService->create($data);
+
+        return (new PaymentResource($payment))
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    public function deposit(
+        Request $request,
+        Booking $booking
+    ): JsonResponse {
+        $isOwner = $booking->guest_id === $request->user()?->guest?->id;
+        $isStaff = $request->user()?->can('payments.create') ?? false;
+
+        abort_unless(
+            $isOwner || $isStaff,
+            403,
+            'You are not authorized to pay this booking deposit.'
+        );
+
+        $data = $request->validate([
+            'payment_method' => [
+                'required',
+                'string',
+                'in:card,aba,wing,acleda',
+            ],
+
+            'transaction_id' => [
+                'required',
+                'string',
+                'max:150',
+            ],
+        ]);
+
+        $payment = $this->paymentService->create([
+            'booking_id' => $booking->id,
+            'amount' => (float) $booking->deposit_amount,
+            'payment_method' => $data['payment_method'],
+            'transaction_id' => $data['transaction_id'] ?? null,
+        ]);
+
+        $payment = $this->paymentService->markPaid($payment);
 
         return (new PaymentResource($payment))
             ->response()
