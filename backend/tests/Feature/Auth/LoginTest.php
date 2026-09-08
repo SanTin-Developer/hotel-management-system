@@ -10,10 +10,7 @@ use Spatie\Permission\Models\Role;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    RateLimiter::clear('customer@example.com|127.0.0.1');
-    RateLimiter::clear('customer@example.com|');
-    RateLimiter::clear('attack@example.com|127.0.0.1');
-    RateLimiter::clear('attack@example.com|');
+    $this->withoutMiddleware(ThrottleRequests::class);
 
     Role::create([
         'name' => 'customer',
@@ -62,11 +59,11 @@ it('rejects an email that does not exist', function () {
         ->assertStatus(404)
         ->assertJsonPath(
             'message',
-            'No account found with this email. Please register first.'
+            'No account found with this email or phone. Please register first.'
         )
         ->assertJsonPath(
             'errors.email.0',
-            'No account found with this email.'
+            'No account found with this email or phone.'
         );
 });
 
@@ -121,7 +118,7 @@ it('rejects login when email is missing', function () {
         ->assertStatus(422)
         ->assertJsonPath(
             'errors.email.0',
-            'Email is required.'
+            'Email or phone is required.'
         );
 });
 
@@ -204,22 +201,28 @@ it('can logout and revoke the current token', function () {
 });
 
 it('rate limits repeated login attempts', function () {
-    $key = 'attack@example.com|'.request()->ip();
+    $this->withMiddleware(ThrottleRequests::class);
+
+    $email = 'attack@example.com';
+    $ip = request()->ip() ?? '127.0.0.1';
+    $key = md5('login'.$email.'|'.$ip);
 
     RateLimiter::clear($key);
+    RateLimiter::clear($email.'|'.$ip);
 
     for ($i = 0; $i < 5; $i++) {
         $this->postJson('/api/v1/auth/login', [
-            'email' => 'attack@example.com',
+            'email' => $email,
             'password' => 'wrong-password',
         ]);
     }
 
     $response = $this->postJson('/api/v1/auth/login', [
-        'email' => 'attack@example.com',
+        'email' => $email,
         'password' => 'wrong-password',
     ]);
     $response->assertStatus(429);
 
     RateLimiter::clear($key);
+    RateLimiter::clear($email.'|'.$ip);
 });

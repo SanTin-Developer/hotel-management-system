@@ -6,12 +6,14 @@ use App\Models\RegistrationOtp;
 use App\Models\User;
 use App\Services\Auth\RegistrationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Role;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    $this->withoutMiddleware(ThrottleRequests::class);
     Mail::fake();
 
     Role::create([
