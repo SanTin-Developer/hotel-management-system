@@ -9,22 +9,26 @@ use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\Staff;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Carbon;
 
 class SampleDataSeeder extends Seeder
 {
-    public function run(): void
-    {
-        $this->seedRoomTypes();
-        $this->seedRooms();
-        $this->seedAmenities();
-        $this->seedGuests();
-        $this->seedCoupons();
-        $this->seedStaff();
-        $this->seedOwnerAdmin();
-    }
+public function run(): void
+{
+    // Roles must exist before users/staff sync their roles
+    $this->call(RoleSeeder::class);
+
+    $this->seedRoomTypes();
+    $this->seedRooms();
+    $this->seedAmenities();
+    $this->seedGuests();
+    $this->seedCoupons();
+    $this->seedStaff();
+    $this->seedOwnerAdmin();
+}
 
     private function seedOwnerAdmin(): void
     {
@@ -39,6 +43,9 @@ class SampleDataSeeder extends Seeder
 
         $user->syncRoles('admin');
     }
+
+
+
 
     private function seedRoomTypes(): void
     {
