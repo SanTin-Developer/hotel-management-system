@@ -57,7 +57,7 @@ class BookingService
     {
         $dto = CreateBookingData::fromArray($data);
 
-        return DB::transaction(function () use ($dto) {
+        $booking = DB::transaction(function () use ($dto) {
             $roomIds = collect($dto->roomIds)
                 ->map(fn ($id) => (int) $id)
                 ->unique()
@@ -183,6 +183,10 @@ class BookingService
 
             return $booking;
         });
+
+        SendBookingConfirmationEmail::dispatch($booking->id);
+
+        return $booking;
     }
 
     public function confirm(
@@ -449,16 +453,11 @@ class BookingService
                 'note' => $note,
             ]);
 
-            if ($newStatus === 'confirmed') {
-                SendBookingConfirmationEmail::dispatch($booking->id)
-                    ->afterCommit();
-            } else {
-                SendBookingStatusEmail::dispatch(
-                    $booking->id,
-                    $newStatus,
-                    $note
-                )->afterCommit();
-            }
+            SendBookingStatusEmail::dispatch(
+                $booking->id,
+                $newStatus,
+                $note
+            )->afterCommit();
 
             return $booking->refresh()->load([
                 'guest',

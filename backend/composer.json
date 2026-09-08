@@ -15,6 +15,7 @@
         "laravel/sanctum": "^4.3",
         "laravel/tinker": "^3.0",
         "predis/predis": "^3.6",
+        "resend/resend-laravel": "^1.4",
         "spatie/laravel-data": "^4.23",
         "spatie/laravel-permission": "^8.3",
         "spatie/laravel-query-builder": "^7.3"

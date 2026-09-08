@@ -1,11 +1,13 @@
 <?php
 
+use App\Jobs\SendBookingConfirmationEmail;
 use App\Models\Booking;
 use App\Models\Guest;
 use App\Models\Room;
 use App\Models\RoomType;
 use App\Services\Booking\BookingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Validation\ValidationException;
 
 uses(RefreshDatabase::class);
@@ -128,6 +130,8 @@ it('cannot change a completed booking', function () {
 });
 
 it('records the initial pending history when a booking is created', function () {
+    Queue::fake();
+
     $guest = statusTestGuest();
 
     $roomType = RoomType::create([
@@ -157,4 +161,9 @@ it('records the initial pending history when a booking is created', function () 
         'booking_id' => $booking->id,
         'status' => 'pending',
     ]);
+
+    Queue::assertPushed(
+        SendBookingConfirmationEmail::class,
+        fn (SendBookingConfirmationEmail $job) => $job->bookingId === $booking->id
+    );
 });

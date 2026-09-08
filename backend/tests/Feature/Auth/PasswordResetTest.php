@@ -1,17 +1,17 @@
 <?php
 
-use App\Mail\RegistrationOtpMail;
+use App\Jobs\SendPasswordResetOtpEmail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\RateLimiter;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    Mail::fake();
+    Queue::fake();
     $this->withoutMiddleware(ThrottleRequests::class);
     foreach (['admin@example.com', 'nobody@example.com'] as $email) {
         RateLimiter::clear('password-reset:'.$email);
@@ -34,9 +34,11 @@ it('sends a reset code to an existing email address', function () {
         ->assertOk()
         ->assertJsonPath('message', 'If the email exists, a reset code has been sent.');
 
-    Mail::assertSent(
-        RegistrationOtpMail::class,
-        fn (RegistrationOtpMail $mail) => $mail->fullName === 'SanTin' && strlen($mail->otp) === 6
+    Queue::assertPushed(
+        SendPasswordResetOtpEmail::class,
+        fn (SendPasswordResetOtpEmail $job) => $job->email === 'admin@example.com'
+            && $job->fullName === 'SanTin'
+            && strlen($job->otp) === 6
     );
 });
 
@@ -49,7 +51,7 @@ it('does not reveal whether the email exists', function () {
         ->assertOk()
         ->assertJsonPath('message', 'If the email exists, a reset code has been sent.');
 
-    Mail::assertNothingSent();
+    Queue::assertNothingPushed();
 });
 
 it('resets the password with a valid OTP', function () {
@@ -57,7 +59,7 @@ it('resets the password with a valid OTP', function () {
         'email' => 'admin@example.com',
     ])->assertOk();
 
-    $otp = Mail::sent(RegistrationOtpMail::class)->first()->otp;
+    $otp = Queue::pushed(SendPasswordResetOtpEmail::class)->first()->otp;
 
     $response = $this->postJson('/api/v1/auth/password/reset', [
         'email' => 'admin@example.com',
@@ -106,7 +108,7 @@ it('rejects an expired reset code', function () {
         'email' => 'admin@example.com',
     ])->assertOk();
 
-    $otp = Mail::sent(RegistrationOtpMail::class)->first()->otp;
+    $otp = Queue::pushed(SendPasswordResetOtpEmail::class)->first()->otp;
 
     $data = cache()->get('password_reset:v2:admin@example.com');
     $data['expires_at'] = now()->subMinutes(1)->toIso8601String();
@@ -142,7 +144,7 @@ it('hashes and stores the reset code without leaking it back', function () {
         'email' => 'admin@example.com',
     ])->assertOk();
 
-    $otp = Mail::sent(RegistrationOtpMail::class)->first()->otp;
+    $otp = Queue::pushed(SendPasswordResetOtpEmail::class)->first()->otp;
 
     $stored = cache()->get('password_reset:v2:admin@example.com');
 
