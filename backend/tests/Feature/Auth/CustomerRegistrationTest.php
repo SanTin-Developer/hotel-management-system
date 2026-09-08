@@ -3,9 +3,17 @@
 use App\Mail\RegistrationOtpMail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    $this->withoutMiddleware(ThrottleRequests::class);
+    RateLimiter::clear('registration-otp:customer@example.com');
+    User::where('email', 'customer@example.com')->delete();
+});
 
 it('starts customer registration and sends an OTP without creating a user', function () {
     Mail::fake();
