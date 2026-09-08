@@ -1,15 +1,18 @@
 #!/bin/bash
+
 set -e
 
 LISTEN_PORT="${PORT:-10000}"
+
 sed -i "s/__PORT__/${LISTEN_PORT}/" /etc/nginx/sites-available/default
 
-# Cache config for performance (safe since env vars are set in Render dashboard)
-php artisan config:cache
-
-# Run migrations on every deploy (safe to run repeatedly — only applies new ones)
+# Run migrations
 php artisan migrate --force
+
+# Seed initial/sample production data
 php artisan db:seed --class=SampleDataSeeder --force
+
+# Cache configuration after all environment variables are available
 php artisan config:cache
 
 # Start nginx + php-fpm together
