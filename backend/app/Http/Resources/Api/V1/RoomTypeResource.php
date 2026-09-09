@@ -15,7 +15,9 @@ class RoomTypeResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'name_kh' => $this->name_kh,
             'description' => $this->description,
+            'description_kh' => $this->description_kh,
             'capacity' => $this->capacity,
             'base_price' => $this->base_price,
             'size' => $this->size,

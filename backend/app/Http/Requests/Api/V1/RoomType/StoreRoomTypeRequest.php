@@ -22,7 +22,19 @@ class StoreRoomTypeRequest extends FormRequest
                 'unique:room_types,name',
             ],
 
+            'name_kh' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
             'description' => [
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+
+            'description_kh' => [
                 'nullable',
                 'string',
                 'max:5000',

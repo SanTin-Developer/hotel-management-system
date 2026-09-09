@@ -114,7 +114,9 @@ export function RoomDetailsPage() {
             {t("nav.rooms")}
           </Link>
           <ChevronRight className="size-3.5" />
-          <span className="font-medium text-foreground">{roomType.name}</span>
+          <span className="font-medium text-foreground">
+            {isKh ? roomType.name_kh ?? roomType.name : roomType.name}
+          </span>
         </div>
       </div>
 
@@ -168,7 +170,7 @@ export function RoomDetailsPage() {
                   {t("rooms.viewAll")}
                 </p>
                 <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
-                  {roomType.name}
+                  {isKh ? roomType.name_kh ?? roomType.name : roomType.name}
                 </h1>
                 <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                   <span className="inline-flex items-center gap-1.5">
@@ -243,7 +245,9 @@ export function RoomDetailsPage() {
               {t("roomDetails.about")}
             </h2>
             <p className="mt-4 text-base leading-relaxed text-muted-foreground">
-              {roomType.description}
+              {isKh
+                ? roomType.description_kh ?? roomType.description
+                : roomType.description}
             </p>
           </div>
 

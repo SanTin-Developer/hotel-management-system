@@ -43,6 +43,7 @@ const EMPTY_FORM = {
   floor: "",
   status: "available",
   description: "",
+  description_kh: "",
 };
 
 function RoomForm({ room, roomTypes, amenities, onSuccess }) {
@@ -56,6 +57,7 @@ function RoomForm({ room, roomTypes, amenities, onSuccess }) {
           floor: String(room.floor),
           status: room.status,
           description: room.description ?? "",
+          description_kh: room.description_kh ?? "",
         }
       : EMPTY_FORM,
   );
@@ -126,6 +128,7 @@ function RoomForm({ room, roomTypes, amenities, onSuccess }) {
       floor: Number(form.floor),
       status: form.status,
       description: form.description || null,
+      description_kh: form.description_kh.trim() || null,
     });
   }
 
@@ -278,6 +281,15 @@ function RoomForm({ room, roomTypes, amenities, onSuccess }) {
           value={form.description}
           onChange={(v) => set("description", v)}
           placeholder="Optional notes about this room"
+        />
+      </div>
+      <div className="mt-4">
+        <TextAreaField
+          label="Description (Khmer)"
+          name="description_kh"
+          value={form.description_kh}
+          onChange={(v) => set("description_kh", v)}
+          placeholder="ពិពណ៌នាបន្ថែមអំពីបន្ទប់នេះ"
         />
       </div>
       <FormActions

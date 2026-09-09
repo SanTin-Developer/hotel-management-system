@@ -25,6 +25,7 @@ class RoomTypeService
                     $query->where(function ($query) use ($search) {
                         $query
                             ->where('name', 'ILIKE', "%{$search}%")
+                            ->orWhere('name_kh', 'ILIKE', "%{$search}%")
                             ->orWhere('description', 'ILIKE', "%{$search}%")
                             ->orWhere('bed_type', 'ILIKE', "%{$search}%");
                     });

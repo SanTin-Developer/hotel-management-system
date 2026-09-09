@@ -25,7 +25,19 @@ class UpdateRoomTypeRequest extends FormRequest
                     ->ignore($roomTypeId),
             ],
 
+            'name_kh' => [
+                'nullable',
+                'string',
+                'max:100',
+            ],
+
             'description' => [
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+
+            'description_kh' => [
                 'nullable',
                 'string',
                 'max:5000',

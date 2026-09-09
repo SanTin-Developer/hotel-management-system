@@ -51,6 +51,12 @@ class StoreRoomRequest extends FormRequest
                 'string',
                 'max:5000',
             ],
+
+            'description_kh' => [
+                'nullable',
+                'string',
+                'max:5000',
+            ],
         ];
     }
 

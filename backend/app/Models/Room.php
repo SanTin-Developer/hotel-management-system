@@ -18,6 +18,7 @@ class Room extends Model
         'floor',
         'status',
         'description',
+        'description_kh',
         'image_url',
         'image_public_id',
     ];

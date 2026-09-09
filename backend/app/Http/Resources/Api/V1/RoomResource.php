@@ -19,6 +19,7 @@ class RoomResource extends JsonResource
             'floor' => $this->floor,
             'status' => $this->status,
             'description' => $this->description,
+            'description_kh' => $this->description_kh,
             'image_url' => $this->image_url,
 
             'images' => $this->whenLoaded(

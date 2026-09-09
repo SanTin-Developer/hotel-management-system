@@ -25,7 +25,7 @@ const NAV_LINKS = [
 ];
 
 function RoomsMegaMenu() {
-  const { t } = useI18n();
+  const { t, isKh } = useI18n();
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
@@ -104,7 +104,7 @@ function RoomsMegaMenu() {
                     />
                     <div className="px-3 py-2.5">
                       <p className="truncate text-sm font-semibold text-foreground group-hover:text-brand-900">
-                        {roomType.name}
+                        {isKh ? roomType.name_kh ?? roomType.name : roomType.name}
                       </p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         {t("rooms.from")} {formatCurrency(roomType.base_price)}

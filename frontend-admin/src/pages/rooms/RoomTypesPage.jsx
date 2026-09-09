@@ -40,7 +40,9 @@ const BED_TYPES = [
 
 const EMPTY_FORM = {
   name: "",
+  name_kh: "",
   description: "",
+  description_kh: "",
   capacity: "2",
   base_price: "",
   size: "",
@@ -55,7 +57,9 @@ function RoomTypeForm({ roomType, onSuccess }) {
     isEdit
       ? {
           name: roomType.name,
+          name_kh: roomType.name_kh ?? "",
           description: roomType.description ?? "",
+          description_kh: roomType.description_kh ?? "",
           capacity: String(roomType.capacity),
           base_price: String(roomType.base_price ?? ""),
           size: String(roomType.size ?? ""),
@@ -109,7 +113,9 @@ function RoomTypeForm({ roomType, onSuccess }) {
     if (Object.keys(errs).length) return;
     mutation.mutate({
       name: form.name.trim(),
+      name_kh: form.name_kh.trim() || null,
       description: form.description || null,
+      description_kh: form.description_kh.trim() || null,
       capacity: Number(form.capacity),
       base_price: form.base_price ? Number(form.base_price) : null,
       size: form.size ? Number(form.size) : null,
@@ -129,6 +135,13 @@ function RoomTypeForm({ roomType, onSuccess }) {
           error={errors.name}
           required
           placeholder="Deluxe King"
+        />
+        <TextField
+          label="Name (Khmer)"
+          name="name_kh"
+          value={form.name_kh}
+          onChange={(v) => set("name_kh", v)}
+          placeholder="បន្ទប់គេងពិសេស"
         />
         <TextField
           label="Capacity (guests)"
@@ -199,6 +212,15 @@ function RoomTypeForm({ roomType, onSuccess }) {
           placeholder="Amenities and highlights of this room type"
         />
       </div>
+      <div className="mt-4">
+        <TextAreaField
+          label="Description (Khmer)"
+          name="description_kh"
+          value={form.description_kh}
+          onChange={(v) => set("description_kh", v)}
+          placeholder="ពិពណ៌នាអំពីបន្ទប់ប្រភេទនេះ"
+        />
+      </div>
       <FormActions
         onCancel={onSuccess}
         submitLabel={isEdit ? "Save changes" : "Create room type"}
@@ -248,6 +270,9 @@ export default function RoomTypesPage() {
           </span>
           <div>
             <p className="font-medium text-[#1E2B22]">{r.name}</p>
+            {r.name_kh && (
+              <p className="text-xs text-[#A67C16]">{r.name_kh}</p>
+            )}
             <p className="text-xs text-[#7A8677]">{r.bed_type || "—"} bed</p>
           </div>
         </div>

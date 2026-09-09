@@ -8,7 +8,7 @@ import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
 export function RoomTypeCard({ roomType, className, showCapacity = true }) {
-  const { t } = useI18n();
+  const { t, isKh } = useI18n();
 
   return (
     <Link
@@ -35,7 +35,7 @@ export function RoomTypeCard({ roomType, className, showCapacity = true }) {
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-start justify-between gap-3">
           <h3 className="text-lg font-semibold text-foreground transition-colors group-hover:text-brand-900">
-            {roomType.name}
+            {isKh ? roomType.name_kh ?? roomType.name : roomType.name}
           </h3>
         </div>
 
