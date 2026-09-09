@@ -15,6 +15,10 @@ return new class extends Migration
 
             $table->string('country', 100);
 
+            $table->string('nationality', 100)->nullable();
+            $table->date('date_of_birth')->nullable();
+            $table->text('address')->nullable();
+
             $table->string('id_type', 50)->nullable();
             $table->string('id_number', 100)->nullable();
 

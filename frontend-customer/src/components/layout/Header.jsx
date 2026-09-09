@@ -40,20 +40,20 @@ function CambodiaFlag({ className }) {
 
 export function Header() {
   return (
-    <div className="relative isolate hidden overflow-hidden bg-brand-950 text-brand-100 lg:block">
+    <div className="relative isolate overflow-hidden bg-brand-950 text-brand-100">
       <FinisherShapes />
       <div className="pointer-events-none absolute inset-0 bg-brand-950/60" />
-      <div className="relative mx-auto flex h-14 max-w-7xl items-center justify-between px-6 text-xs md:h-16">
-        <div className="flex items-center gap-5">
+      <div className="relative mx-auto flex h-11 max-w-7xl items-center justify-between gap-4 overflow-hidden px-4 text-[11px] sm:px-6 md:h-14 md:text-xs">
+        <div className="flex items-center gap-3 sm:gap-5">
           <a
             href={`tel:${HOTEL_PHONE.replace(/\s/g, "")}`}
-            className="inline-flex items-center gap-1.5 transition-colors hover:text-gold-300"
+            className="inline-flex items-center gap-1.5 whitespace-nowrap transition-colors hover:text-gold-300"
           >
             <CambodiaFlag className="size-4 shrink-0 rounded-[2px] shadow-sm ring-1 ring-white/15" />
             <Phone className="size-3.5" />
-            {HOTEL_PHONE}
+            <span>{HOTEL_PHONE}</span>
           </a>
-          <div className="flex items-center gap-2 border-l border-white/15 pl-5">
+          <div className="hidden items-center gap-2 border-l border-white/15 pl-4 sm:flex lg:pl-5">
             {SOCIAL_LINKS.map(({ href, label, icon: Icon }) => (
               <a
                 key={label}
@@ -69,13 +69,13 @@ export function Header() {
           </div>
           <a
             href={`mailto:${HOTEL_EMAIL}`}
-            className="inline-flex items-center gap-1.5 transition-colors hover:text-gold-300"
+            className="hidden items-center gap-1.5 whitespace-nowrap transition-colors hover:text-gold-300 lg:inline-flex"
           >
             <Mail className="size-3.5" />
             {HOTEL_EMAIL}
           </a>
         </div>
-        <div className="inline-flex items-center gap-1.5 text-brand-200">
+        <div className="hidden items-center gap-1.5 text-brand-200 md:inline-flex">
           <Clock className="size-3.5 text-gold-400" />
           <span className="inline-flex items-center gap-1.5">
             <CambodiaFlag className="size-4 rounded-[2px] shadow-sm ring-1 ring-white/15" />

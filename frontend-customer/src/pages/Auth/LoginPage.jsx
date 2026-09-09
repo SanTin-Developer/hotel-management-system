@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { ContactModal } from "@/components/common/ContactModal";
 import { useAuthStore } from "@/store/authStore";
 import { useI18n } from "@/i18n";
 import { ROUTES } from "@/constants/routes";
@@ -10,6 +11,7 @@ export function LoginPage() {
   const location = useLocation();
   const token = useAuthStore((state) => state.token);
   const { t } = useI18n();
+  const [contactOpen, setContactOpen] = useState(false);
 
   const goTo = location.state?.from ?? ROUTES.profile;
 
@@ -41,6 +43,17 @@ export function LoginPage() {
           {t("auth.createFree")}
         </Link>
       </p>
+      <p className="mt-3 text-center text-sm text-muted-foreground">
+        {t("auth.needHelp")}{" "}
+        <button
+          type="button"
+          onClick={() => setContactOpen(true)}
+          className="font-semibold text-brand-800 hover:underline"
+        >
+          {t("auth.contactUs")}
+        </button>
+      </p>
+      <ContactModal open={contactOpen} onOpenChange={setContactOpen} />
     </>
   );
 }

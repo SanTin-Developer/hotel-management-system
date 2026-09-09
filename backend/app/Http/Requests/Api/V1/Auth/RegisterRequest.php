@@ -35,6 +35,24 @@ class RegisterRequest extends FormRequest
                 'max:100',
             ],
 
+            'nationality' => [
+                'required',
+                'string',
+                'max:100',
+            ],
+
+            'date_of_birth' => [
+                'required',
+                'date',
+                'before:today',
+            ],
+
+            'address' => [
+                'required',
+                'string',
+                'max:255',
+            ],
+
             'id_type' => [
                 'required',
                 'in:national_id,passport',

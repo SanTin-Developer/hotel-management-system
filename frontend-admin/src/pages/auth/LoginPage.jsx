@@ -288,7 +288,7 @@ export default function LoginPage() {
               <p className="text-center text-xs text-[#7A8677]">
                 Can't access your account?{" "}
                 <a
-                  href="mailto:admin@ledger-hotel.com"
+                  href="mailto:santinoeurn0601@gmail.com"
                   className="font-medium text-[#4F7A3B] transition-colors duration-200 hover:text-[#7FA35C]"
                 >
                   Contact your administrator.

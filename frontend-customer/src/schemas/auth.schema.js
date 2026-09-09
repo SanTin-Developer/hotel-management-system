@@ -17,6 +17,9 @@ export const registerSchema = z
       .min(2, "Full name must be at least 2 characters")
       .max(150, "Full name is too long"),
     country: z.string().trim().min(1, "Country is required").max(100),
+    nationality: z.string().trim().min(1, "Nationality is required").max(100),
+    date_of_birth: z.string().trim().min(1, "Date of birth is required"),
+    address: z.string().trim().min(1, "Address is required").max(255),
     id_type: z.enum(["national_id", "passport"], {
       message: "Please select an ID type",
     }),

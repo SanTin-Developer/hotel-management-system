@@ -9,6 +9,9 @@ class RegistrationOtp extends Model
     protected $fillable = [
         'full_name',
         'country',
+        'nationality',
+        'date_of_birth',
+        'address',
         'id_type',
         'id_number',
         'email',
@@ -25,5 +28,6 @@ class RegistrationOtp extends Model
     protected $casts = [
         'expires_at' => 'datetime',
         'verified_at' => 'datetime',
+        'date_of_birth' => 'date',
     ];
 }

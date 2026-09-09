@@ -35,6 +35,9 @@ export function RegisterForm({ onSuccess }) {
   const [values, setValues] = useState({
     full_name: "",
     country: "",
+    nationality: "",
+    date_of_birth: "",
+    address: "",
     id_type: "national_id",
     id_number: "",
     email: "",
@@ -234,6 +237,51 @@ export function RegisterForm({ onSuccess }) {
             <p className="text-xs text-red-600">{fieldError(errors, "country")}</p>
           )}
         </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="reg-nationality">{t("auth.nationality")}</Label>
+          <Input
+            id="reg-nationality"
+            value={values.nationality}
+            onChange={handleChange("nationality")}
+            aria-invalid={Boolean(fieldError(errors, "nationality"))}
+            className="h-11"
+          />
+          {fieldError(errors, "nationality") && (
+            <p className="text-xs text-red-600">{fieldError(errors, "nationality")}</p>
+          )}
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="reg-dob">{t("auth.dob")}</Label>
+          <Input
+            id="reg-dob"
+            type="date"
+            max={new Date().toISOString().split("T")[0]}
+            value={values.date_of_birth}
+            onChange={handleChange("date_of_birth")}
+            aria-invalid={Boolean(fieldError(errors, "date_of_birth"))}
+            className="h-11"
+          />
+          {fieldError(errors, "date_of_birth") && (
+            <p className="text-xs text-red-600">{fieldError(errors, "date_of_birth")}</p>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="reg-address">{t("auth.address")}</Label>
+        <Input
+          id="reg-address"
+          value={values.address}
+          onChange={handleChange("address")}
+          aria-invalid={Boolean(fieldError(errors, "address"))}
+          className="h-11"
+        />
+        {fieldError(errors, "address") && (
+          <p className="text-xs text-red-600">{fieldError(errors, "address")}</p>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
