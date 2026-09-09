@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { X, CalendarDays, UserRound, LogOut } from "lucide-react";
 import { Logo } from "./Logo";
 import { Button } from "@/components/ui/button";
+import { LanguageToggle } from "@/components/common/LanguageToggle";
 import { useI18n } from "@/i18n";
 import { useAuth } from "@/hooks/useAuth";
 import { ROUTES } from "@/constants/routes";
@@ -48,14 +49,17 @@ export function MobileMenu({ open, onClose }) {
           >
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <Logo />
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label={t("nav.closeMenu")}
-                className="grid size-9 place-items-center rounded-full text-muted-foreground hover:bg-brand-50"
-              >
-                <X className="size-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <LanguageToggle />
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label={t("nav.closeMenu")}
+                  className="grid size-9 place-items-center rounded-full text-muted-foreground hover:bg-brand-50"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
             </div>
 
             <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-5" aria-label={t("nav.mobile")}>
