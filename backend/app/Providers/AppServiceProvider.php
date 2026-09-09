@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Mail\Transport\BrevoApiTransport;
 use App\Models\Booking;
 use App\Models\Coupon;
 use App\Models\Guest;
@@ -19,6 +20,7 @@ use App\Policies\UserPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -31,6 +33,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Mail::extend('brevo', function (array $config) {
+            return new BrevoApiTransport((string) config('services.brevo.key'));
+        });
+
         Gate::policy(Booking::class, BookingPolicy::class);
         Gate::policy(Guest::class, GuestPolicy::class);
         Gate::policy(Coupon::class, CouponPolicy::class);
