@@ -15,7 +15,12 @@ class UploadRoomTypeImageRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'image' => [
+            'images' => [
+                'required',
+                'array',
+                'max:10',
+            ],
+            'images.*' => [
                 'required',
                 'image',
                 'mimes:jpeg,png,webp,gif',
@@ -27,10 +32,13 @@ class UploadRoomTypeImageRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'image.required' => 'An image file is required.',
-            'image.image' => 'The uploaded file must be an image.',
-            'image.mimes' => 'Only jpeg, png, webp and gif images are allowed.',
-            'image.max' => 'The image must not exceed 5 MB.',
+            'images.required' => 'At least one image is required.',
+            'images.array' => 'Images must be an array.',
+            'images.max' => 'You can upload up to 10 images at once.',
+            'images.*.required' => 'Each image file is required.',
+            'images.*.image' => 'Each uploaded file must be an image.',
+            'images.*.mimes' => 'Only jpeg, png, webp and gif images are allowed.',
+            'images.*.max' => 'Each image must not exceed 5 MB.',
         ];
     }
 }

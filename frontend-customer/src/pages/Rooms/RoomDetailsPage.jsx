@@ -77,6 +77,7 @@ export function RoomDetailsPage() {
   const images = Array.from(
     new Set(
       [
+        ...(roomType.images ?? []).map((image) => image.image_url),
         roomType.image_url,
         ...rooms.flatMap((room) => [
           room.image_url,

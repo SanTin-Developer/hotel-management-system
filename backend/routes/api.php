@@ -64,10 +64,13 @@ Route::prefix('v1/room-types')->group(function () {
         ->delete('/{roomType}', [RoomTypeController::class, 'destroy']);
 
     Route::middleware(['auth:sanctum', 'permission:room-types.update'])
-        ->post('/{roomType}/image', [RoomTypeController::class, 'uploadImage']);
+        ->post('/{roomType}/images', [RoomTypeController::class, 'uploadImages']);
 
     Route::middleware(['auth:sanctum', 'permission:room-types.update'])
-        ->delete('/{roomType}/image', [RoomTypeController::class, 'removeImage']);
+        ->delete('/{roomType}/images/{image}', [RoomTypeController::class, 'removeImage']);
+
+    Route::middleware(['auth:sanctum', 'permission:room-types.update'])
+        ->put('/{roomType}/images/reorder', [RoomTypeController::class, 'reorderImages']);
 });
 
 // Room API-EndPoint

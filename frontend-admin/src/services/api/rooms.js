@@ -22,9 +22,13 @@ export const fetchRoomType = (id) => getOne(`/room-types/${id}`);
 export const createRoomType = (data) => create("/room-types", data);
 export const updateRoomType = (id, data) => update(`/room-types/${id}`, data);
 export const deleteRoomType = (id) => remove(`/room-types/${id}`);
-export const uploadRoomTypeImage = (id, file) => {
+export const uploadRoomTypeImages = (id, files) => {
   const formData = new FormData();
-  formData.append("image", file);
-  return apiClient.post(`/room-types/${id}/image`, formData);
+  files.forEach((file) => {
+    formData.append("images[]", file);
+  });
+  return apiClient.post(`/room-types/${id}/images`, formData);
 };
-export const deleteRoomTypeImage = (id) => remove(`/room-types/${id}/image`);
+export const deleteRoomTypeImage = (id, imageId) => remove(`/room-types/${id}/images/${imageId}`);
+export const reorderRoomTypeImages = (id, imageIds) =>
+  action(`/room-types/${id}/images/reorder`, "put", { image_ids: imageIds });

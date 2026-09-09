@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\RoomType;
+use App\Models\RoomTypeImage;
 use App\Services\Media\CloudinaryService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +45,7 @@ class RoomTypeService
 
     public function getById(RoomType $roomType): RoomType
     {
-        return $roomType->loadCount('rooms');
+        return $roomType->loadCount('rooms')->load('images');
     }
 
     public function create(array $data): RoomType
@@ -59,7 +60,7 @@ class RoomTypeService
         return DB::transaction(function () use ($roomType, $data) {
             $roomType->update($data);
 
-            return $roomType->refresh()->loadCount('rooms');
+            return $roomType->refresh()->loadCount('rooms')->load('images');
         });
     }
 
@@ -70,44 +71,54 @@ class RoomTypeService
         });
     }
 
-    public function uploadImage(RoomType $roomType, UploadedFile $file): RoomType
+    public function uploadImages(RoomType $roomType, array $files): RoomType
     {
-        return DB::transaction(function () use ($roomType, $file) {
-            $previous = $roomType->image_public_id;
+        return DB::transaction(function () use ($roomType, $files) {
+            $maxSort = $roomType->images()->max('sort_order') ?? -1;
 
-            $upload = $this->cloudinary->upload(
-                $file,
-                'hotel/room-types'
-            );
+            foreach ($files as $index => $file) {
+                $upload = $this->cloudinary->upload(
+                    $file,
+                    'hotel/room-types'
+                );
 
-            $roomType->update([
-                'image_url' => $upload['secure_url'],
-                'image_public_id' => $upload['public_id'],
-            ]);
-
-            if ($previous) {
-                $this->cloudinary->destroy($previous);
+                RoomTypeImage::create([
+                    'room_type_id' => $roomType->id,
+                    'image_url' => $upload['secure_url'],
+                    'image_public_id' => $upload['public_id'],
+                    'sort_order' => $maxSort + 1 + $index,
+                ]);
             }
 
-            return $roomType->refresh()->loadCount('rooms');
+            return $roomType->refresh()->load('images')->loadCount('rooms');
         });
     }
 
-    public function removeImage(RoomType $roomType): RoomType
+    public function removeImage(RoomType $roomType, RoomTypeImage $image): RoomType
     {
-        return DB::transaction(function () use ($roomType) {
-            $publicId = $roomType->image_public_id;
+        return DB::transaction(function () use ($roomType, $image) {
+            $publicId = $image->image_public_id;
 
-            $roomType->update([
-                'image_url' => null,
-                'image_public_id' => null,
-            ]);
+            $image->delete();
 
             if ($publicId) {
                 $this->cloudinary->destroy($publicId);
             }
 
-            return $roomType->refresh()->loadCount('rooms');
+            return $roomType->refresh()->load('images')->loadCount('rooms');
+        });
+    }
+
+    public function reorderImages(RoomType $roomType, array $imageIds): RoomType
+    {
+        return DB::transaction(function () use ($roomType, $imageIds) {
+            foreach ($imageIds as $index => $imageId) {
+                RoomTypeImage::where('id', $imageId)
+                    ->where('room_type_id', $roomType->id)
+                    ->update(['sort_order' => $index]);
+            }
+
+            return $roomType->refresh()->load('images')->loadCount('rooms');
         });
     }
 }

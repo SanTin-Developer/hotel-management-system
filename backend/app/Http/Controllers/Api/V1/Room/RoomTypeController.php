@@ -9,6 +9,7 @@ use App\Http\Requests\Api\V1\RoomType\UpdateRoomTypeRequest;
 use App\Http\Requests\Api\V1\RoomType\UploadRoomTypeImageRequest;
 use App\Http\Resources\Api\V1\RoomTypeResource;
 use App\Models\RoomType;
+use App\Models\RoomTypeImage;
 use App\Services\RoomTypeService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
@@ -95,21 +96,34 @@ class RoomTypeController extends Controller
         }
     }
 
-    public function uploadImage(
+    public function uploadImages(
         UploadRoomTypeImageRequest $request,
         RoomType $roomType
     ): RoomTypeResource {
-        $roomType = $this->roomTypeService->uploadImage(
+        $roomType = $this->roomTypeService->uploadImages(
             $roomType,
-            $request->file('image')
+            $request->file('images')
         );
 
         return new RoomTypeResource($roomType);
     }
 
-    public function removeImage(RoomType $roomType): RoomTypeResource
-    {
-        $roomType = $this->roomTypeService->removeImage($roomType);
+    public function removeImage(
+        RoomType $roomType,
+        RoomTypeImage $image
+    ): RoomTypeResource {
+        $roomType = $this->roomTypeService->removeImage($roomType, $image);
+
+        return new RoomTypeResource($roomType);
+    }
+
+    public function reorderImages(
+        RoomType $roomType
+    ): RoomTypeResource {
+        $roomType = $this->roomTypeService->reorderImages(
+            $roomType,
+            request()->input('image_ids', [])
+        );
 
         return new RoomTypeResource($roomType);
     }

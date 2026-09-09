@@ -25,6 +25,15 @@ class RoomTypeResource extends JsonResource
             'image_url' => $this->image_url,
             'status' => $this->status,
 
+            'images' => $this->whenLoaded(
+                'images',
+                fn () => $this->images->map(fn ($image) => [
+                    'id' => $image->id,
+                    'image_url' => $image->image_url,
+                    'sort_order' => $image->sort_order,
+                ])
+            ),
+
             'rooms_count' => $this->whenCounted('rooms'),
 
             'created_at' => $this->created_at?->toISOString(),

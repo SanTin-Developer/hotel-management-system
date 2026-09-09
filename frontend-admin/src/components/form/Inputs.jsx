@@ -201,13 +201,83 @@ export function ImageField({
   initialUrl,
   onRemove,
   circular = false,
+  multiple = false,
+  initialImages = [],
 }) {
   const inputRef = useRef(null);
-  const hasValue = Boolean(value || initialUrl);
+  const hasValue = multiple
+    ? (value && value.length > 0) || initialImages.length > 0
+    : Boolean(value || initialUrl);
 
   function handleFile(file) {
     if (!file) return;
     onChange?.(file);
+  }
+
+  function handleFiles(files) {
+    if (!files || files.length === 0) return;
+    onChange?.(Array.from(files));
+  }
+
+  if (multiple) {
+    const allImages = [
+      ...initialImages.map((img) => ({ ...img, isNew: false })),
+      ...(value || []).map((file, i) => ({
+        id: `new-${i}`,
+        image_url: URL.createObjectURL(file),
+        file,
+        isNew: true,
+      })),
+    ];
+
+    return (
+      <Field label={label} error={error} hint={hint} htmlFor={name}>
+        <div className="space-y-3">
+          {allImages.length > 0 && (
+            <div className="flex flex-wrap gap-3">
+              {allImages.map((img) => (
+                <div key={img.id} className="relative group">
+                  <div className="h-20 w-24 overflow-hidden rounded-lg bg-[#EEF1E9]">
+                    <img
+                      src={img.image_url}
+                      alt="Preview"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onRemove?.(img)}
+                    className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-[#C25B50] text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Trash2 className="h-3 w-3" strokeWidth={1.5} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <input
+            ref={inputRef}
+            id={name}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.target.value = "";
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-[#DCE3D5] bg-white px-3 text-sm font-medium text-[#5E6B5A] transition-colors hover:bg-[#F1F3ED]"
+          >
+            <ImagePlus className="h-4 w-4" strokeWidth={1.5} />
+            {allImages.length > 0 ? "Add more images" : "Choose images"}
+          </button>
+        </div>
+      </Field>
+    );
   }
 
   return (

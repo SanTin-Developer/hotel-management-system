@@ -18,7 +18,7 @@ import {
   createRoomType,
   updateRoomType,
   deleteRoomType,
-  uploadRoomTypeImage,
+  uploadRoomTypeImages,
   deleteRoomTypeImage,
 } from "@/services/api/rooms";
 import { getErrorMessage, formatCurrency } from "@/lib/format";
@@ -68,8 +68,8 @@ function RoomTypeForm({ roomType, onSuccess }) {
         }
       : EMPTY_FORM,
   );
-  const [image, setImage] = useState(null);
-  const [removeImage, setRemoveImage] = useState(false);
+  const [image, setImage] = useState([]);
+  const [removeImages, setRemoveImages] = useState([]);
   const [errors, setErrors] = useState({});
 
   const mutation = useMutation({
@@ -80,12 +80,14 @@ function RoomTypeForm({ roomType, onSuccess }) {
 
       const id = saved.id ?? roomType?.id;
 
-      if (removeImage && id) {
-        await deleteRoomTypeImage(id).catch(() => {});
+      if (removeImages.length > 0 && id) {
+        await Promise.all(
+          removeImages.map((img) => deleteRoomTypeImage(id, img.id).catch(() => {}))
+        );
       }
 
-      if (image && id) {
-        await uploadRoomTypeImage(id, image);
+      if (image.length > 0 && id) {
+        await uploadRoomTypeImages(id, image);
       }
 
       return saved;
@@ -188,19 +190,22 @@ function RoomTypeForm({ roomType, onSuccess }) {
       </div>
       <div className="mt-4">
         <ImageField
-          label="Image"
-          name="image"
+          label="Images"
+          name="images"
+          multiple
           value={image}
           onChange={(v) => {
-            setImage(v);
-            if (v) setRemoveImage(false);
+            setImage((prev) => [...prev, ...(Array.isArray(v) ? v : [v])]);
           }}
-          initialUrl={isEdit ? roomType.image_url : undefined}
-          onRemove={() => {
-            setRemoveImage(true);
-            setImage(null);
+          initialImages={isEdit ? (roomType.images ?? []) : []}
+          onRemove={(img) => {
+            if (img.isNew) {
+              setImage((prev) => prev.filter((_, i) => `new-${i}` !== img.id));
+            } else {
+              setRemoveImages((prev) => [...prev, img]);
+            }
           }}
-          hint={image ? "Uploaded when you save." : "Choose an image for this room type."}
+          hint="Upload up to 10 images for this room type."
         />
       </div>
       <div className="mt-4">
