@@ -68,7 +68,7 @@ class BrevoApiTransport extends AbstractTransport
 
         $payload = [
             'sender' => [
-                'name' => $sender->getName(),
+                'name' => $sender->getName() ?: $sender->getAddress(),
                 'email' => $sender->getAddress(),
             ],
             'to' => $this->stringifyAddresses($this->getRecipients($email, $envelope)),
@@ -86,7 +86,7 @@ class BrevoApiTransport extends AbstractTransport
         if (count($email->getReplyTo()) > 0) {
             $firstReplyTo = $email->getReplyTo()[0];
             $payload['replyTo'] = [
-                'name' => $firstReplyTo->getName(),
+                'name' => $firstReplyTo->getName() ?: $firstReplyTo->getAddress(),
                 'email' => $firstReplyTo->getAddress(),
             ];
         }
@@ -124,7 +124,7 @@ class BrevoApiTransport extends AbstractTransport
     {
         return array_map(static function (Address $address) {
             return [
-                'name' => $address->getName(),
+                'name' => $address->getName() ?: $address->getAddress(),
                 'email' => $address->getAddress(),
             ];
         }, $addresses);
@@ -181,7 +181,9 @@ class BrevoApiTransport extends AbstractTransport
     protected function client(): PendingRequest
     {
         return Http::baseUrl(rtrim($this->endpoint, '/'))
-            ->withToken($this->apiKey)
+            ->withHeaders([
+                'api-key' => $this->apiKey,
+            ])
             ->acceptJson()
             ->asJson()
             ->retry(0)
