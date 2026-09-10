@@ -29,6 +29,13 @@ class UpdateReviewRequest extends FormRequest
                 'max:5000',
             ],
 
+            'comment_kh' => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:5000',
+            ],
+
             'status' => [
                 'sometimes',
                 'required',

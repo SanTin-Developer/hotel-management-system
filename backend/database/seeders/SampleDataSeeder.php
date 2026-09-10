@@ -3,8 +3,11 @@
 namespace Database\Seeders;
 
 use App\Models\Amenity;
+use App\Models\Booking;
+use App\Models\BookingItem;
 use App\Models\Coupon;
 use App\Models\Guest;
+use App\Models\Review;
 use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\Staff;
@@ -218,6 +221,7 @@ class SampleDataSeeder extends Seeder
         $this->seedAmenities();
         $this->seedGuests();
         $this->seedCoupons();
+        $this->seedReviews();
         $this->seedStaff();
         $this->seedOwnerAdmin();
     }
@@ -480,6 +484,121 @@ class SampleDataSeeder extends Seeder
             Guest::updateOrCreate(
                 ['email' => $data['email']],
                 collect($data)->except('email')->all()
+            );
+        }
+    }
+
+    private function seedReviews(): void
+    {
+        $guests = Guest::orderBy('id')->get();
+        $rooms = Room::with('roomType')->orderBy('id')->get();
+
+        if ($guests->isEmpty() || $rooms->isEmpty()) {
+            return;
+        }
+
+        $reviewsSeed = [
+            [
+                'full_name' => 'Sovannara Chen',
+                'rating' => 5,
+                'comment' => 'Wonderful stay, the room was spotless and the staff were extremely helpful.',
+                'comment_kh' => 'ការស្នាក់នៅដ៏អស្ចារ្យ បន្ទប់ស្អាតស្អំ ហើយបុគ្គលិកមានភាពរួសរាយរាក់ទាក់ខ្លាំងណាស់។',
+                'room_type' => 'Executive Suite',
+                'days_ago' => 3,
+            ],
+            [
+                'full_name' => 'Maria Gonzalez',
+                'rating' => 5,
+                'comment' => 'Great location and a very comfortable bed. Highly recommended.',
+                'comment_kh' => 'ទីតាំងល្អ និងគ្រែស្រួលណាស់។ ណែនាំឲ្យសាកល្បង។',
+                'room_type' => 'Presidential Suite',
+                'days_ago' => 6,
+            ],
+            [
+                'full_name' => 'James Okafor',
+                'rating' => 4,
+                'comment' => 'Excellent service from check-in to check-out. Breakfast could be better.',
+                'comment_kh' => 'សេវាកម្មល្អឥតខ្ចោះ ចាប់ពីចូលទទួលបន្ទប់រហូតដល់ចេញ។ ប្រហែលអាហារពេលព្រឹកអាចល្អជាងនេះបន្តិច។',
+                'room_type' => 'Deluxe Room',
+                'days_ago' => 9,
+            ],
+            [
+                'full_name' => 'Yuki Tanaka',
+                'rating' => 5,
+                'comment' => 'Beautiful room with a lovely view. Would come back again.',
+                'comment_kh' => 'បន្ទប់ស្អាត មានទិដ្ឋភាពស្រស់ស្អាត។ ចង់ត្រឡប់មកស្នាក់នៅទៀត។',
+                'room_type' => 'Suite',
+                'days_ago' => 12,
+            ],
+            [
+                'full_name' => 'Elena Petrova',
+                'rating' => 4,
+                'comment' => 'Very pleasant experience overall. The pool was a bonus.',
+                'comment_kh' => 'បទពិសោធន៍រីករាយខ្លាំងណាស់។ អាងហែលទឹកជាអត្ថប្រយោជន៍បន្ថែម។',
+                'room_type' => 'Villa',
+                'days_ago' => 15,
+            ],
+            [
+                'full_name' => 'Daniel Smith',
+                'rating' => 5,
+                'comment' => 'Perfect for a family trip, lots of space and very clean.',
+                'comment_kh' => 'ស័ក្តិសមណាស់សម្រាប់ការធ្វើដំណើរជាគ្រួសារ មានកន្លែងទំនេរច្រើន និងស្អាតណាស់។',
+                'room_type' => 'Family Room',
+                'days_ago' => 18,
+            ],
+        ];
+
+        foreach ($reviewsSeed as $index => $data) {
+            $guest = $guests->firstWhere('full_name', $data['full_name']);
+            $room = $rooms->firstWhere(
+                'room_type.name',
+                $data['room_type']
+            );
+
+            if (! $guest || ! $room) {
+                continue;
+            }
+
+            $bookingCode = 'SAMPLE-REVIEW-'.str_pad((string) ($index + 1), 4, '0', STR_PAD_LEFT);
+
+            $booking = Booking::updateOrCreate(
+                ['booking_code' => $bookingCode],
+                [
+                    'guest_id' => $guest->id,
+                    'check_in' => Carbon::today()->subDays($data['days_ago'] + 3),
+                    'check_out' => Carbon::today()->subDays($data['days_ago']),
+                    'adults' => $room->roomType->capacity >= 3 ? 3 : 2,
+                    'children' => $data['room_type'] === 'Family Room' ? 2 : 0,
+                    'total_amount' => $room->roomType->base_price * 3,
+                    'deposit_rate' => 20.00,
+                    'deposit_amount' => round($room->roomType->base_price * 3 * 0.20, 2),
+                    'booking_source' => 'website',
+                    'status' => 'completed',
+                ]
+            );
+
+            BookingItem::updateOrCreate(
+                [
+                    'booking_id' => $booking->id,
+                    'room_id' => $room->id,
+                ],
+                [
+                    'price_per_night' => $room->roomType->base_price,
+                    'nights' => 3,
+                    'subtotal' => $room->roomType->base_price * 3,
+                    'status' => 'reserved',
+                ]
+            );
+
+            Review::updateOrCreate(
+                ['booking_id' => $booking->id],
+                [
+                    'guest_id' => $guest->id,
+                    'rating' => $data['rating'],
+                    'comment' => $data['comment'],
+                    'comment_kh' => $data['comment_kh'],
+                    'status' => 'approved',
+                ]
             );
         }
     }

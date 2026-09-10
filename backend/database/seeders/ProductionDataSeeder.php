@@ -348,25 +348,28 @@ class ProductionDataSeeder extends Seeder
 
         $ratings = [5, 5, 4, 4, 4, 3, 5, 4, 5, 3];
         $comments = [
-            'Wonderful stay, the room was spotless and staff were very helpful.',
-            'Great location and very comfortable bed. Highly recommended.',
-            'Excellent service from check-in to check-out.',
-            'Beautiful room with a lovely view. Would come back again.',
-            'Good value for money. Breakfast could be better though.',
-            'Very pleasant experience overall.',
-            null,
-            'The air conditioning was a bit noisy but otherwise a great stay.',
-            'Perfect for a family trip, lots of space.',
-            'Decent hotel, clean and quiet.',
-            'Amazing hospitality, will definitely return.',
-            'Room was nice, the pool was a bonus.',
+            ['Wonderful stay, the room was spotless and staff were very helpful.', 'ការស្នាក់នៅល្អណាស់ បន្ទប់ស្អាត ហើយបុគ្គលិកជួយល្អ។'],
+            ['Great location and very comfortable bed. Highly recommended.', 'ទីតាំងល្អ គ្រែស្រួល ណែនាំឲ្យសាកល្បង។'],
+            ['Excellent service from check-in to check-out.', 'សេវាកម្មល្អឥតខ្ចោះពីចូលរហូតដល់ចេញ។'],
+            ['Beautiful room with a lovely view. Would come back again.', 'បន្ទប់ស្អាត ទិដ្ឋភាពស្រស់ស្អាត នឹងត្រឡប់មកវិញ។'],
+            ['Good value for money. Breakfast could be better though.', 'តម្លៃសមរម្យ ប៉ុន្តែអាហារពេលព្រឹកអាចល្អជាងនេះ។'],
+            ['Very pleasant experience overall.', 'បទពិសោធន៍រីករាយខ្លាំងណាស់។'],
+            [null, null],
+            ['The air conditioning was a bit noisy but otherwise a great stay.', 'ម៉ាស៊ីនត្រជាក់មានសំឡេងបន្តិច ប៉ុន្តែការស្នាក់នៅល្អ។'],
+            ['Perfect for a family trip, lots of space.', 'ស័ក្តិសមសម្រាប់គ្រួសារ មានកន្លែងច្រើន។'],
+            ['Decent hotel, clean and quiet.', 'សណ្ឋាគារស្អាត ស្ងប់ស្ងាត់ និងស្អាត។'],
+            ['Amazing hospitality, will definitely return.', 'ភាពរាក់ទាក់អស្ចារ្យ នឹងត្រលប់មកវិញពិតប្រាកដ។'],
+            ['Room was nice, the pool was a bonus.', 'បន្ទប់ល្អ អាងហែលទឹកជាអត្ថប្រយោជន៍បន្ថែម។'],
         ];
+
+        $random = $comments[array_rand($comments)];
 
         DB::table('reviews')->insert([
             'booking_id' => $bookingId,
             'guest_id' => $guest->id,
             'rating' => $ratings[array_rand($ratings)],
-            'comment' => $comments[array_rand($comments)],
+            'comment' => $random[0],
+            'comment_kh' => $random[1],
             'status' => 'approved',
             'created_at' => now()->subDays(random_int(0, 30)),
             'updated_at' => now()->subDays(random_int(0, 30)),

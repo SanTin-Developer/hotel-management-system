@@ -15,6 +15,7 @@ class Review extends Model
         'guest_id',
         'rating',
         'comment',
+        'comment_kh',
         'status',
     ];
 

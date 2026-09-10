@@ -18,6 +18,7 @@ class ReviewResource extends JsonResource
             'guest_id' => $this->guest_id,
             'rating' => $this->rating,
             'comment' => $this->comment,
+            'comment_kh' => $this->comment_kh,
             'status' => $this->status,
 
             'guest' => $this->whenLoaded(

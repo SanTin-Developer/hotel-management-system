@@ -38,6 +38,12 @@ class StoreReviewRequest extends FormRequest
                 'string',
                 'max:5000',
             ],
+
+            'comment_kh' => [
+                'nullable',
+                'string',
+                'max:5000',
+            ],
         ];
     }
 
