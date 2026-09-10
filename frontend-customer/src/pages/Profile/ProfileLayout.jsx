@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { useState } from "react";
 import {
   LayoutDashboard,
   Briefcase,
@@ -6,6 +7,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PhotoViewer } from "@/components/profile/PhotoViewer";
 import { avatarFallback } from "@/lib/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { ROUTES } from "@/constants/routes";
@@ -14,6 +16,7 @@ import { useI18n } from "@/i18n";
 export function ProfileLayout() {
   const { user, guest, logout } = useAuth();
   const { t } = useI18n();
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   const NAV = [
     { to: ROUTES.profile, labelKey: "profile.overview", icon: LayoutDashboard, end: true },
@@ -28,7 +31,13 @@ export function ProfileLayout() {
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-2xl border border-border bg-white p-6">
               <div className="flex items-center gap-4">
-                <span className="grid size-14 place-items-center overflow-hidden rounded-full bg-brand-900 text-lg font-semibold text-white">
+                <button
+                  type="button"
+                  onClick={() => user?.guest?.photo_url && setViewerOpen(true)}
+                  disabled={!user?.guest?.photo_url}
+                  title={user?.guest?.photo_url ? t("settings.viewPhoto") : undefined}
+                  className="grid size-14 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-900 text-lg font-semibold text-white disabled:cursor-default"
+                >
                   {user?.guest?.photo_url ? (
                     <img
                       src={user.guest.photo_url}
@@ -38,7 +47,7 @@ export function ProfileLayout() {
                   ) : (
                     avatarFallback(guest?.full_name ?? user?.name ?? "Guest")
                   )}
-                </span>
+                </button>
                 <div className="min-w-0">
                   <p className="truncate font-semibold">
                     {guest?.full_name ?? user?.name}
@@ -88,6 +97,13 @@ export function ProfileLayout() {
           </main>
         </div>
       </div>
+
+      <PhotoViewer
+        open={viewerOpen}
+        src={user?.guest?.photo_url}
+        alt={guest?.full_name ?? user?.name ?? "avatar"}
+        onOpenChange={setViewerOpen}
+      />
     </section>
   );
 }

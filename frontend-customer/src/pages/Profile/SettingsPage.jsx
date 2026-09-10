@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ImageCropDialog } from "@/components/profile/ImageCropDialog";
+import { PhotoViewer } from "@/components/profile/PhotoViewer";
 import { avatarFallback } from "@/lib/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { firstError, extractApiMessage } from "@/utils/validation";
@@ -22,6 +24,9 @@ export function SettingsPage() {
   const { user, guest, updateProfile, uploadPhoto, removePhoto } = useAuth();
   const profile = guest ?? {};
   const fileInputRef = useRef(null);
+
+  const [cropState, setCropState] = useState(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   const [values, setValues] = useState({
     full_name: profile.full_name ?? user?.name ?? "",
@@ -38,11 +43,17 @@ export function SettingsPage() {
   const [photoBusy, setPhotoBusy] = useState(false);
   const { t } = useI18n();
 
-  const handlePhotoChange = async (event) => {
+  const handlePhotoChange = (event) => {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file) return;
 
+    const url = URL.createObjectURL(file);
+    setCropState({ url, fileName: file.name });
+  };
+
+  const handlePhotoCrop = async (file) => {
+    setCropState(null);
     setPhotoBusy(true);
     try {
       await uploadPhoto(file);
@@ -117,7 +128,13 @@ export function SettingsPage() {
 
       <div className="rounded-2xl border border-border bg-white">
         <div className="flex items-center gap-4 border-b border-border px-6 py-5">
-          <span className="relative grid size-16 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-900 text-lg font-semibold text-white">
+          <button
+            type="button"
+            onClick={() => profile.photo_url && setViewerOpen(true)}
+            disabled={!profile.photo_url}
+            title={profile.photo_url ? t("settings.viewPhoto") : undefined}
+            className="relative grid size-16 shrink-0 place-items-center overflow-hidden rounded-full bg-brand-900 text-lg font-semibold text-white disabled:cursor-default"
+          >
             {profile.photo_url ? (
               <img
                 src={profile.photo_url}
@@ -132,7 +149,7 @@ export function SettingsPage() {
                 <Loader2 className="size-5 animate-spin text-white" />
               </span>
             )}
-          </span>
+          </button>
           <div className="min-w-0">
             <p className="text-lg font-semibold">
               {profile.full_name ?? user?.name}
@@ -322,6 +339,24 @@ export function SettingsPage() {
           </Button>
         </Link>
       </div>
+
+      <ImageCropDialog
+        open={Boolean(cropState)}
+        imageSrc={cropState?.url ?? null}
+        fileName={cropState?.fileName}
+        onCancel={() => {
+          if (cropState) URL.revokeObjectURL(cropState.url);
+          setCropState(null);
+        }}
+        onSave={handlePhotoCrop}
+      />
+
+      <PhotoViewer
+        open={viewerOpen}
+        src={profile.photo_url}
+        alt={profile.full_name ?? t("profile.avatarAlt")}
+        onOpenChange={setViewerOpen}
+      />
     </div>
   );
 }
