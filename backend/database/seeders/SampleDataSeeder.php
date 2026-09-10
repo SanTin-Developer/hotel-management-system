@@ -551,7 +551,7 @@ class SampleDataSeeder extends Seeder
         foreach ($reviewsSeed as $index => $data) {
             $guest = $guests->firstWhere('full_name', $data['full_name']);
             $room = $rooms->firstWhere(
-                'room_type.name',
+                'roomType.name',
                 $data['room_type']
             );
 
