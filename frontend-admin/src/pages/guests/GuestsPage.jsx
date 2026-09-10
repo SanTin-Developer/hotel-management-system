@@ -152,7 +152,7 @@ function GuestForm({ guest, onSuccess }) {
           label="ID number"
           name="id_number"
           value={form.id_number}
-          onChange={(v) => set("id_number", v)}
+          onChange={(v) => set("id_number", v.replace(/[^\w\d\-() ]/g, ""))}
           placeholder="Passport / national ID no."
         />
         <SelectField

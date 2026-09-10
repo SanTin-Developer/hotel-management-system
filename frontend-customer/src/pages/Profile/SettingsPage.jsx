@@ -72,8 +72,12 @@ export function SettingsPage() {
     }
   };
 
-  const handleChange = (field) => (event) => {
-    setValues((current) => ({ ...current, [field]: event.target.value }));
+  const handleChange = (field, transform) => (event) => {
+    const raw = event.target.value;
+    setValues((current) => ({
+      ...current,
+      [field]: transform ? transform(raw) : raw,
+    }));
     setError(null);
   };
 
@@ -278,7 +282,9 @@ export function SettingsPage() {
                 id="settings-id-number"
                 className="h-11"
                 value={values.id_number}
-                onChange={handleChange("id_number")}
+                onChange={handleChange("id_number", (v) =>
+                  v.replace(/[^\w\d\-() ]/g, "")
+                )}
               />
             </div>
           </div>

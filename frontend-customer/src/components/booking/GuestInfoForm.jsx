@@ -41,9 +41,9 @@ export function GuestInfoForm({ onSaved }) {
   const { t } = useI18n();
 
   const handleChange =
-    (field) =>
+    (field, transform) =>
     ({ target }) => {
-      const value = target.value;
+      const value = transform ? transform(target.value) : target.value;
       setValues((current) => ({ ...current, [field]: value }));
       setErrors((current) => ({ ...current, [field]: undefined }));
     };
@@ -169,7 +169,7 @@ export function GuestInfoForm({ onSaved }) {
           <Input
             id="gi-id-number"
             value={values.id_number}
-            onChange={handleChange("id_number")}
+            onChange={handleChange("id_number", (v) => v.replace(/[^\w\d\-() ]/g, ""))}
             aria-invalid={Boolean(fieldError(errors, "id_number"))}
             className="h-11"
           />

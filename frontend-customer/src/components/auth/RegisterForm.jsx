@@ -54,8 +54,12 @@ export function RegisterForm({ onSuccess }) {
   const [otpNote, setOtpNote] = useState(null);
   const [otpLoading, setOtpLoading] = useState(false);
 
-  const handleChange = (field) => (event) => {
-    setValues((current) => ({ ...current, [field]: event.target.value }));
+  const handleChange = (field, transform) => (event) => {
+    const raw = event.target.value;
+    setValues((current) => ({
+      ...current,
+      [field]: transform ? transform(raw) : raw,
+    }));
     setErrors((current) => ({ ...current, [field]: undefined }));
     setFormError(null);
   };
@@ -308,7 +312,7 @@ export function RegisterForm({ onSuccess }) {
           <Input
             id="reg-id-number"
             value={values.id_number}
-            onChange={handleChange("id_number")}
+            onChange={handleChange("id_number", (v) => v.replace(/[^\w\d\-() ]/g, ""))}
             aria-invalid={Boolean(fieldError(errors, "id_number"))}
             className="h-11"
           />
