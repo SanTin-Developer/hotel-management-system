@@ -9,7 +9,7 @@ The system is currently **live in production** on two managed platforms:
 | **Customer Website** | React 19 + Vite (static) | https://hotel-management-system-coral-six.vercel.app |
 | **Backend REST API** | Laravel 13 on **Render** | https://hotel-management-system-vhox.onrender.com/api/v1 |
 | **PostgreSQL Database** | Render Managed Postgres | Provisioned via Render dashboard (`DB_*` env vars) |
-| **Admin Console** | React 19 + Vite (static) | *Coming soon* |
+| **Admin Console** | React 19 + Vite (static) | https://hotel-management-system-27rd.vercel.app |
 
 **Deployment notes**
 - **Render (backend)**: The Docker image is built from `backend/Dockerfile` and launched via `backend/docker/start.sh`, which runs migrations + `SampleDataSeeder` then boots `php-fpm`, `nginx`, and the Redis queue worker. Health checks must pass before Render considers a deploy successful.
