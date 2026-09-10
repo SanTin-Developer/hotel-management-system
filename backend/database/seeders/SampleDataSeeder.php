@@ -9,29 +9,218 @@ use App\Models\Room;
 use App\Models\RoomType;
 use App\Models\Staff;
 use App\Models\User;
-use Spatie\Permission\Models\Role;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class SampleDataSeeder extends Seeder
 {
-public function run(): void
-{
-    // Roles and permissions must exist before users/staff sync their roles
-    $this->call([
-        RoleSeeder::class,
-        PermissionSeeder::class,
-    ]);
+    private const IMAGE_BASE = 'https://images.unsplash.com/photo-%s?auto=format&fit=crop&w=1200&q=80';
 
-    $this->seedRoomTypes();
-    $this->seedRooms();
-    $this->seedAmenities();
-    $this->seedGuests();
-    $this->seedCoupons();
-    $this->seedStaff();
-    $this->seedOwnerAdmin();
-}
+    private const ROOM_TYPE_SEEDS = [
+        [
+            'name' => 'Standard Room',
+            'name_kh' => 'បន្ទប់ស្តង់ដារ',
+            'description' => 'An entry-level luxury room with a plush double bed, elegant furnishings, and refined amenities.',
+            'description_kh' => 'បន្ទប់លំដាប់ផ្កាយប្រាំដំបូងគេ មានគ្រែធំដ៏កក់ក្ដៅ គ្រឿងសង្ហារិមទំនើប និងសេវាកម្មដ៏ល្អឥតខ្ចោះ។',
+            'capacity' => 2,
+            'base_price' => 120.00,
+            'size' => 28.00,
+            'bed_type' => 'double',
+            'images' => [
+                '1611892440504-42a792e24d32',
+                '1505691938895-1758d7feb511',
+                '1582719508461-905c673771fd',
+                '1554995207-c18c203602cb',
+            ],
+        ],
+        [
+            'name' => 'Deluxe Room',
+            'name_kh' => 'បន្ទប់ឌីលុច',
+            'description' => 'A high-end room with a king-size bed, premium bathroom, and sophisticated décor.',
+            'description_kh' => 'បន្ទប់លំដាប់ខ្ពស់ មានគ្រែស៊ីហ្ស៍ស្ដេច បន្ទប់ទឹកទំនើប និងការតុបតែងបែបឆ្នើម។',
+            'capacity' => 2,
+            'base_price' => 160.00,
+            'size' => 34.00,
+            'bed_type' => 'king',
+            'images' => [
+                '1571896349842-33c89424de2d',
+                '1611892440504-42a792e24d32',
+                '1566073771259-6a8506099945',
+                '1584132967334-10e028bd69f7',
+            ],
+        ],
+        [
+            'name' => 'Superior Room',
+            'name_kh' => 'បន្ទប់ស៊ុបភីរីយ័រ',
+            'description' => 'An upgraded room offering a better view and larger living space than the Deluxe Room.',
+            'description_kh' => 'បន្ទប់កម្រិតខ្ពស់ជាងឌីលុច មានទិដ្ឋភាពស្អាត និងទំហំធំទូលាយជាង។',
+            'capacity' => 2,
+            'base_price' => 200.00,
+            'size' => 38.00,
+            'bed_type' => 'king',
+            'images' => [
+                '1590490360182-c33d57733427',
+                '1578683010236-d716f9a3f461',
+                '1616486338812-3dadae4b4ace',
+                '1595576508898-0ad5c879a061',
+            ],
+        ],
+        [
+            'name' => 'Executive Room',
+            'name_kh' => 'បន្ទប់អាជីវកម្ម',
+            'description' => 'A business-traveler focused room with lounge access, a work desk, and priority services.',
+            'description_kh' => 'បន្ទប់សម្រាប់អ្នកធ្វើអាជីវកម្ម មានសិទ្ធិចូលបន្ទប់ទទួលភ្ញៀវ តុធ្វើការ និងសេវាកម្មអាទិភាព។',
+            'capacity' => 2,
+            'base_price' => 240.00,
+            'size' => 42.00,
+            'bed_type' => 'king',
+            'images' => [
+                '1631049307264-da0ec9d70304',
+                '1560448204-e02f11c3d0e2',
+                '1611892440504-42a792e24d32',
+                '1549294413-26f195200c16',
+            ],
+        ],
+        [
+            'name' => 'Junior Suite',
+            'name_kh' => 'ឈុតជូនីយ័រ',
+            'description' => 'One large room combining a sleeping area with a separate sitting area for extra comfort.',
+            'description_kh' => 'បន្ទប់ធំមួយ ដែលរួមបញ្ចូលកន្លែងគេង និងកន្លែងអង្គុយសម្រាកដាច់ដោយឡែក។',
+            'capacity' => 3,
+            'base_price' => 320.00,
+            'size' => 48.00,
+            'bed_type' => 'queen',
+            'images' => [
+                '1549294413-26f195200c16',
+                '1522708323590-d24dbb6b0267',
+                '1571896349842-33c89424de2d',
+                '1590490360182-c33d57733427',
+            ],
+        ],
+        [
+            'name' => 'Suite',
+            'name_kh' => 'ឈុត',
+            'description' => 'A luxurious suite with a separate bedroom and living room, ideal for longer stays.',
+            'description_kh' => 'ឈុតប្រណីត មានបន្ទប់គេង និងបន្ទប់ទទួលភ្ញៀវដាច់ដោយឡែក ស័ក្តិសមសម្រាប់ការស្នាក់នៅយូរ។',
+            'capacity' => 3,
+            'base_price' => 420.00,
+            'size' => 60.00,
+            'bed_type' => 'king',
+            'images' => [
+                '1595576508898-0ad5c879a061',
+                '1616486338812-3dadae4b4ace',
+                '1566073771259-6a8506099945',
+                '1578683010236-d716f9a3f461',
+            ],
+        ],
+        [
+            'name' => 'Executive Suite',
+            'name_kh' => 'ឈុតអាជីវកម្ម',
+            'description' => 'A suite with executive lounge privileges, butler service, and premium in-room amenities.',
+            'description_kh' => 'ឈុតដែលមានសិទ្ធិចូលបន្ទប់ទទួលភ្ញៀវសម្រាប់អាជីវកម្ម សេវាកម្មអ្នកបម្រើ និងបរិក្ខារក្នុងបន្ទប់ថ្នាក់ប្រណីត។',
+            'capacity' => 3,
+            'base_price' => 520.00,
+            'size' => 75.00,
+            'bed_type' => 'king',
+            'images' => [
+                '1566073771259-6a8506099945',
+                '1631049307264-da0ec9d70304',
+                '1584132967334-10e028bd69f7',
+                '1611892440504-42a792e24d32',
+            ],
+        ],
+        [
+            'name' => 'Presidential Suite',
+            'name_kh' => 'ឈុតប្រធានាធិបតី',
+            'description' => 'The top-tier suite with multiple rooms, premium amenities, panoramic views, and private service.',
+            'description_kh' => 'ឈុតលំដាប់កំពូល មានបន្ទប់ច្រើន បរិក្ខារប្រណីត ទិដ្ឋភាពទូលំទូលាយ និងសេវាកម្មឯកជន។',
+            'capacity' => 4,
+            'base_price' => 900.00,
+            'size' => 120.00,
+            'bed_type' => 'king',
+            'images' => [
+                '1512918728675-ed5a9ecdebfd',
+                '1621293950781-5bf5336f2a99',
+                '1566073771259-6a8506099945',
+                '1631049307264-da0ec9d70304',
+            ],
+        ],
+        [
+            'name' => 'Family Room',
+            'name_kh' => 'បន្ទប់គ្រួសារ',
+            'description' => 'A larger room with comfortable bedding, perfect for families with children.',
+            'description_kh' => 'បន្ទប់ធំទូលាយ មានគ្រែស្រួលសម្រាប់គ្រួសារដែលមានកុមារ។',
+            'capacity' => 4,
+            'base_price' => 300.00,
+            'size' => 55.00,
+            'bed_type' => 'queen',
+            'images' => [
+                '1554995207-c18c203602cb',
+                '1560448204-e02f11c3d0e2',
+                '1582719508461-905c673771fd',
+                '1505691938895-1758d7feb511',
+            ],
+        ],
+        [
+            'name' => 'Villa',
+            'name_kh' => 'វីឡា',
+            'description' => 'A standalone unit with a private garden or view, exclusive for the most discerning guests.',
+            'description_kh' => 'អគារឯករាជ្យ មានសួនច្បារឯកជន ឬទិដ្ឋភាពស្អាត សម្រាប់ភ្ញៀវដែលចង់បានភាពឯកជន។',
+            'capacity' => 4,
+            'base_price' => 650.00,
+            'size' => 95.00,
+            'bed_type' => 'king',
+            'images' => [
+                '1512918728675-ed5a9ecdebfd',
+                '1571896349842-33c89424de2d',
+                '1584132967334-10e028bd69f7',
+                '1590490360182-c33d57733427',
+            ],
+        ],
+    ];
+
+    private const FLOOR_PLAN = [
+        1 => ['Standard Room', 'Standard Room', 'Deluxe Room', 'Deluxe Room', 'Superior Room'],
+        2 => ['Standard Room', 'Deluxe Room', 'Superior Room', 'Superior Room', 'Executive Room'],
+        3 => ['Deluxe Room', 'Superior Room', 'Executive Room', 'Executive Room', 'Junior Suite'],
+        4 => ['Superior Room', 'Executive Room', 'Junior Suite', 'Junior Suite', 'Suite'],
+        5 => ['Executive Room', 'Junior Suite', 'Suite', 'Suite', 'Executive Suite'],
+        6 => ['Junior Suite', 'Suite', 'Executive Suite', 'Executive Suite', 'Presidential Suite'],
+        7 => ['Suite', 'Executive Suite', 'Presidential Suite', 'Presidential Suite', 'Presidential Suite'],
+        8 => ['Executive Suite', 'Presidential Suite', 'Family Room', 'Family Room', 'Family Room'],
+        9 => ['Family Room', 'Family Room', 'Family Room', 'Villa', 'Villa'],
+        10 => ['Villa', 'Villa', 'Villa', 'Presidential Suite', 'Presidential Suite'],
+    ];
+
+    private const ROOM_IMAGE_POOL = [
+        '1611892440504-42a792e24d32',
+        '1571896349842-33c89424de2d',
+        '1590490360182-c33d57733427',
+        '1566073771259-6a8506099945',
+        '1582719508461-905c673771fd',
+        '1549294413-26f195200c16',
+        '1595576508898-0ad5c879a061',
+        '1631049307264-da0ec9d70304',
+    ];
+
+    public function run(): void
+    {
+        // Roles and permissions must exist before users/staff sync their roles
+        $this->call([
+            RoleSeeder::class,
+            PermissionSeeder::class,
+        ]);
+
+        $this->seedRoomTypes();
+        $this->seedRooms();
+        $this->pruneStaleRoomTypes();
+        $this->seedAmenities();
+        $this->seedGuests();
+        $this->seedCoupons();
+        $this->seedStaff();
+        $this->seedOwnerAdmin();
+    }
 
     private function seedOwnerAdmin(): void
     {
@@ -47,334 +236,87 @@ public function run(): void
         $user->syncRoles('admin');
     }
 
-
-
-
     private function seedRoomTypes(): void
     {
-        $roomTypes = [
-            [
-                'name' => 'Deluxe Room',
-                'description' => 'A comfortable and elegant room with a king-size bed, modern amenities, and a relaxing atmosphere.',
-                'capacity' => 2,
-                'base_price' => 80.00,
-                'size' => 32.00,
-                'bed_type' => 'king',
-                'image_url' => 'https://res.cloudinary.com/drercy9vt/image/upload/v1788610840/hotel/room-types/c8crsxamwwizzyasxrfb.jpg',
-                'image_public_id' => 'hotel/room-types/c8crsxamwwizzyasxrfb',
-            ],
-            [
-                'name' => 'Standard Room',
-                'description' => 'A clean and practical room with a double bed, ideal for short comfortable stays.',
-                'capacity' => 2,
-                'base_price' => 50.00,
-                'size' => 22.00,
-                'bed_type' => 'double',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'name' => 'Executive Suite',
-                'description' => 'A spacious luxury suite designed for guests seeking extra comfort, privacy, and premium facilities.',
-                'capacity' => 4,
-                'base_price' => 150.00,
-                'size' => 55.00,
-                'bed_type' => 'king',
-                'image_url' => 'https://res.cloudinary.com/drercy9vt/image/upload/v1788610957/hotel/room-types/eysxkddckonqnshuk5ts.jpg',
-                'image_public_id' => 'hotel/room-types/eysxkddckonqnshuk5ts',
-            ],
-            [
-                'name' => 'Twin Room',
-                'description' => 'A room with two twin beds, perfect for friends or colleagues travelling together.',
-                'capacity' => 2,
-                'base_price' => 70.00,
-                'size' => 25.00,
-                'bed_type' => 'twin',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'name' => 'Family Room',
-                'description' => 'A spacious family-friendly room with comfortable bedding and enough space for a relaxing stay.',
-                'capacity' => 4,
-                'base_price' => 120.00,
-                'size' => 45.00,
-                'bed_type' => 'queen',
-                'image_url' => 'https://res.cloudinary.com/drercy9vt/image/upload/v1788611218/hotel/room-types/dqngksfm2jgx85qeadxi.jpg',
-                'image_public_id' => 'hotel/room-types/dqngksfm2jgx85qeadxi',
-            ],
-            [
-                'name' => 'Single Room',
-                'description' => 'A cozy and budget-friendly room with a single bed, ideal for solo travellers.',
-                'capacity' => 1,
-                'base_price' => 45.00,
-                'size' => 18.00,
-                'bed_type' => 'single',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'name' => 'Junior Suite',
-                'description' => 'A comfortable suite with a separate sitting area, balancing space and value.',
-                'capacity' => 2,
-                'base_price' => 100.00,
-                'size' => 38.00,
-                'bed_type' => 'queen',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'name' => 'Honeymoon Suite',
-                'description' => 'A romantic suite with premium furnishings, perfect for couples celebrating a special occasion.',
-                'capacity' => 2,
-                'base_price' => 180.00,
-                'size' => 50.00,
-                'bed_type' => 'king',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'name' => 'Panorama Penthouse',
-                'description' => 'Our top-floor penthouse with breathtaking views, a private lounge, and exclusive amenities.',
-                'capacity' => 4,
-                'base_price' => 220.00,
-                'size' => 70.00,
-                'bed_type' => 'king',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'name' => 'Accessible Room',
-                'description' => 'A spacious room designed for accessibility with wider doorways and grab bars.',
-                'capacity' => 2,
-                'base_price' => 60.00,
-                'size' => 28.00,
-                'bed_type' => 'double',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-        ];
+        foreach (self::ROOM_TYPE_SEEDS as $data) {
+            $images = $data['images'];
+            $imageUrls = array_map(fn (string $id) => sprintf(self::IMAGE_BASE, $id), $images);
 
-        foreach ($roomTypes as $data) {
-            $existing = RoomType::where('name', $data['name'])->first();
-
-            $attrs = collect($data)->except('name')->all();
-
-            if ($existing?->image_url) {
-                $attrs = collect($attrs)->except(['image_url', 'image_public_id'])->all();
-            }
-
-            RoomType::updateOrCreate(
+            $roomType = RoomType::updateOrCreate(
                 ['name' => $data['name']],
-                $attrs
+                collect($data)
+                    ->except(['name', 'images'])
+                    ->put('image_url', $imageUrls[0] ?? null)
+                    ->put('image_public_id', null)
+                    ->all()
             );
+
+            $roomType->images()->delete();
+
+            foreach ($imageUrls as $index => $url) {
+                $roomType->images()->create([
+                    'image_url' => $url,
+                    'image_public_id' => null,
+                    'sort_order' => $index,
+                ]);
+            }
         }
     }
 
     private function seedRooms(): void
     {
-        $rooms = [
-            [
-                'room_type' => 'Deluxe Room',
-                'room_number' => '101',
-                'floor' => 1,
-                'status' => 'available',
-                'description' => 'A comfortable Deluxe Room with a king-size bed, modern facilities, and a relaxing atmosphere.',
-                'image_url' => 'https://res.cloudinary.com/drercy9vt/image/upload/v1788611431/hotel/rooms/drybrnr3w4ywobwvt6we.jpg',
-                'image_public_id' => 'hotel/rooms/drybrnr3w4ywobwvt6we',
-            ],
-            [
-                'room_type' => 'Standard Room',
-                'room_number' => '102',
-                'floor' => 1,
-                'status' => 'maintenance',
-                'description' => 'A practical Standard Room with a double bed.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Executive Suite',
-                'room_number' => '201',
-                'floor' => 2,
-                'status' => 'available',
-                'description' => 'A spacious luxury suite with premium facilities, a comfortable king-size bed, and a beautiful interior.',
-                'image_url' => 'https://res.cloudinary.com/drercy9vt/image/upload/v1788611479/hotel/rooms/a0lxzqiktnyfxeazwrs5.jpg',
-                'image_public_id' => 'hotel/rooms/a0lxzqiktnyfxeazwrs5',
-            ],
-            [
-                'room_type' => 'Twin Room',
-                'room_number' => '301',
-                'floor' => 3,
-                'status' => 'cleaning',
-                'description' => 'A Twin Room with two twin beds.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Family Room',
-                'room_number' => '302',
-                'floor' => 3,
-                'status' => 'available',
-                'description' => 'A spacious family room designed for comfortable stays with enough space for families.',
-                'image_url' => 'https://res.cloudinary.com/drercy9vt/image/upload/v1788611592/hotel/rooms/fxaazvnhpn00momu7arh.jpg',
-                'image_public_id' => 'hotel/rooms/fxaazvnhpn00momu7arh',
-            ],
-            [
-                'room_type' => 'Standard Room',
-                'room_number' => '103',
-                'floor' => 1,
-                'status' => 'available',
-                'description' => 'A practical Standard Room with a double bed.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Standard Room',
-                'room_number' => '104',
-                'floor' => 1,
-                'status' => 'cleaning',
-                'description' => 'A practical Standard Room with a double bed.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Accessible Room',
-                'room_number' => '105',
-                'floor' => 1,
-                'status' => 'available',
-                'description' => 'A spacious room designed for accessibility with wider doorways and grab bars.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Deluxe Room',
-                'room_number' => '202',
-                'floor' => 2,
-                'status' => 'available',
-                'description' => 'A comfortable Deluxe Room with a king-size bed and a relaxing atmosphere.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Twin Room',
-                'room_number' => '203',
-                'floor' => 2,
-                'status' => 'available',
-                'description' => 'A Twin Room with two twin beds.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Single Room',
-                'room_number' => '204',
-                'floor' => 2,
-                'status' => 'occupied',
-                'description' => 'A cozy single room ideal for solo travellers.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Junior Suite',
-                'room_number' => '205',
-                'floor' => 2,
-                'status' => 'available',
-                'description' => 'A comfortable suite with a separate sitting area.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Family Room',
-                'room_number' => '303',
-                'floor' => 3,
-                'status' => 'available',
-                'description' => 'A spacious family room designed for comfortable stays.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Single Room',
-                'room_number' => '304',
-                'floor' => 3,
-                'status' => 'occupied',
-                'description' => 'A cozy single room ideal for solo travellers.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Junior Suite',
-                'room_number' => '305',
-                'floor' => 3,
-                'status' => 'available',
-                'description' => 'A comfortable suite with a separate sitting area.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Honeymoon Suite',
-                'room_number' => '401',
-                'floor' => 4,
-                'status' => 'available',
-                'description' => 'A romantic suite with premium furnishings for couples.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Deluxe Room',
-                'room_number' => '402',
-                'floor' => 4,
-                'status' => 'occupied',
-                'description' => 'A comfortable Deluxe Room with a king-size bed.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Twin Room',
-                'room_number' => '403',
-                'floor' => 4,
-                'status' => 'maintenance',
-                'description' => 'A Twin Room with two twin beds.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Standard Room',
-                'room_number' => '404',
-                'floor' => 4,
-                'status' => 'available',
-                'description' => 'A practical Standard Room with a double bed.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-            [
-                'room_type' => 'Panorama Penthouse',
-                'room_number' => '405',
-                'floor' => 4,
-                'status' => 'available',
-                'description' => 'Our top-floor penthouse with breathtaking views and exclusive amenities.',
-                'image_url' => null,
-                'image_public_id' => null,
-            ],
-        ];
+        $statusPool = ['available', 'available', 'available', 'occupied', 'cleaning'];
 
-        foreach ($rooms as $data) {
-            $roomType = RoomType::where('name', $data['room_type'])->firstOrFail();
+        foreach (self::FLOOR_PLAN as $floor => $typeNames) {
+            foreach ($typeNames as $index => $typeName) {
+                $roomNumber = (string) (($floor * 100) + ($index + 1));
 
-            $existing = Room::where('room_number', $data['room_number'])->first();
+                $roomType = RoomType::where('name', $typeName)->firstOrFail();
 
-            $attrs = collect($data)
-                ->except(['room_type', 'room_number'])
-                ->put('room_type_id', $roomType->id)
-                ->all();
+                $imageIds = $this->roomImageIds($floor, $index + 1);
+                $imageUrls = array_map(fn (string $id) => sprintf(self::IMAGE_BASE, $id), $imageIds);
 
-            if ($existing?->image_url) {
-                $attrs = collect($attrs)->except(['image_url', 'image_public_id'])->all();
+                $room = Room::updateOrCreate(
+                    ['room_number' => $roomNumber],
+                    [
+                        'room_type_id' => $roomType->id,
+                        'floor' => $floor,
+                        'status' => $statusPool[($floor + $index) % count($statusPool)],
+                        'description' => "A {$typeName} on floor {$floor} with {$roomType->name_kh} comfort and premium amenities.",
+                        'description_kh' => "បន្ទប់{$roomType->name_kh} នៅជាន់ទី {$floor} មានផាសុកភាព និងបរិក្ខារកម្រិតខ្ពស់។",
+                        'image_url' => $imageUrls[0] ?? null,
+                        'image_public_id' => null,
+                    ]
+                );
+
+                $room->images()->delete();
+
+                foreach ($imageUrls as $imageIndex => $url) {
+                    $room->images()->create([
+                        'image_url' => $url,
+                        'image_public_id' => null,
+                        'sort_order' => $imageIndex,
+                    ]);
+                }
             }
-
-            Room::updateOrCreate(
-                ['room_number' => $data['room_number']],
-                $attrs
-            );
         }
+    }
+
+    private function roomImageIds(int $floor, int $slot): array
+    {
+        $start = (($floor - 1) * 5 + $slot - 1) % count(self::ROOM_IMAGE_POOL);
+
+        return array_map(
+            fn (int $offset) => self::ROOM_IMAGE_POOL[($start + $offset) % count(self::ROOM_IMAGE_POOL)],
+            [1, 2, 3, 4]
+        );
+    }
+
+    private function pruneStaleRoomTypes(): void
+    {
+        $keepNames = collect(self::ROOM_TYPE_SEEDS)->pluck('name')->all();
+
+        RoomType::whereNotIn('name', $keepNames)->delete();
     }
 
     private function seedAmenities(): void
@@ -382,7 +324,7 @@ public function run(): void
         $amenities = [
             ['name' => 'Free Wi-Fi', 'description' => 'High-speed wireless internet throughout the room.', 'name_kh' => 'វ៉ាយហ្វាយឥតគិតថ្លៃ', 'description_kh' => 'អ៊ីនធឺណិតឥតខ្សែល្បឿនលឿនពេញបន្ទប់។', 'icon' => 'wifi'],
             ['name' => 'Air Conditioning', 'description' => 'Individually controlled air conditioning and heating.', 'name_kh' => 'ម៉ាស៊ីនត្រជាក់', 'description_kh' => 'ម៉ាស៊ីនត្រជាក់ និងកំដៅដែលអាចកែសម្រួលបានដោយខ្លួនឯង។', 'icon' => 'air-vent'],
-            ['name' => 'Flat-screen TV', 'description' => '55-inch smart TV with cable channels and streaming apps.', 'name_kh' => 'ទូរទស្សន៍សំប៉ែត', 'description_kh' => 'ទូរទស្សន៍ឆ្លាត ៥៥ អ៊ីញ ភ្ជាប់ជាមួយប៉ុស្តិ៍ខ្សែកាប និងកម្មវិធីស្ទ្រីមីង។', 'icon' => 'tv'],
+            ['name' => 'Flat-screen TV', 'description' => '55-inch smart TV with cable channels and streaming apps.', 'name_kh' => 'ទូរទស្សន៍អេក្រង់រាបស្មើ', 'description_kh' => 'ទូរទស្សន៍ឆ្លាត ៥៥ អ៊ីញ ភ្ជាប់ជាមួយប៉ុស្តិ៍ខ្សែកាប និងកម្មវិធីស្ទ្រីមីង។', 'icon' => 'tv'],
             ['name' => 'Mini Bar', 'description' => 'Fully stocked mini bar with snacks and drinks.', 'name_kh' => 'បារខ្នាតតូច', 'description_kh' => 'បារខ្នាតតូចដាក់ពេញដោយអាហារសម្រន់ និងភេសជ្ជៈ។', 'icon' => 'glass-water'],
             ['name' => 'Mini Fridge', 'description' => 'Personal refrigerator for guest use.', 'name_kh' => 'ទូរទឹកកកខ្នាតតូច', 'description_kh' => 'ទូរទឹកកកសម្រាប់ភ្ញៀវប្រើប្រាស់។', 'icon' => 'refrigerator'],
             ['name' => 'In-room Safe', 'description' => 'Electronic safe large enough for a laptop.', 'name_kh' => 'សុវត្ថិភាពក្នុងបន្ទប់', 'description_kh' => 'សុវត្ថិភាពអេឡិចត្រូនិក ទំហំគ្រប់គ្រាន់សម្រាប់កុំព្យូទ័រយួរដៃ។', 'icon' => 'lock'],
@@ -408,38 +350,52 @@ public function run(): void
 
     private function attachRoomAmenities(): void
     {
-        $plans = [
-            '101' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Mini Bar', 'Private Bathroom', 'Tea & Coffee Maker', 'Work Desk', 'Hair Dryer', 'In-room Safe'],
-            '102' => ['Free Wi-Fi', 'Air Conditioning', 'Private Bathroom', 'Hair Dryer'],
-            '103' => ['Free Wi-Fi', 'Air Conditioning', 'Private Bathroom', 'Hair Dryer', 'Tea & Coffee Maker'],
-            '104' => ['Free Wi-Fi', 'Air Conditioning', 'Private Bathroom', 'Flat-screen TV'],
-            '105' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Private Bathroom', 'Hair Dryer', 'Work Desk'],
-            '201' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Mini Bar', 'Mini Fridge', 'In-room Safe', 'Private Bathroom', 'Hair Dryer', 'Tea & Coffee Maker', 'Room Service', 'Ocean View', 'Work Desk', 'Pool Access', 'Spa & Sauna'],
-            '202' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Mini Bar', 'In-room Safe', 'Private Bathroom', 'Hair Dryer', 'Tea & Coffee Maker', 'Work Desk', 'Ocean View'],
-            '203' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Private Bathroom', 'Tea & Coffee Maker', 'Work Desk'],
-            '204' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Private Bathroom', 'Work Desk'],
-            '205' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Mini Bar', 'Mini Fridge', 'In-room Safe', 'Private Bathroom', 'Hair Dryer', 'Tea & Coffee Maker', 'Work Desk', 'Pool Access'],
-            '301' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Private Bathroom', 'Hair Dryer'],
-            '302' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Mini Bar', 'Mini Fridge', 'Private Bathroom', 'Hair Dryer', 'Tea & Coffee Maker', 'Ocean View', 'Pool Access'],
-            '303' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Mini Bar', 'Mini Fridge', 'Private Bathroom', 'Hair Dryer', 'Tea & Coffee Maker', 'Pool Access'],
-            '304' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Private Bathroom', 'Work Desk'],
-            '305' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Mini Bar', 'Mini Fridge', 'In-room Safe', 'Private Bathroom', 'Hair Dryer', 'Tea & Coffee Maker', 'Work Desk', 'Pool Access'],
-            '401' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Mini Bar', 'Mini Fridge', 'In-room Safe', 'Private Bathroom', 'Hair Dryer', 'Tea & Coffee Maker', 'Room Service', 'Ocean View', 'Pool Access', 'Spa & Sauna'],
-            '402' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Mini Bar', 'Private Bathroom', 'Tea & Coffee Maker', 'Work Desk', 'Hair Dryer', 'In-room Safe'],
-            '403' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Private Bathroom', 'Hair Dryer'],
-            '404' => ['Free Wi-Fi', 'Air Conditioning', 'Private Bathroom', 'Flat-screen TV', 'Tea & Coffee Maker'],
-            '405' => ['Free Wi-Fi', 'Air Conditioning', 'Flat-screen TV', 'Mini Bar', 'Mini Fridge', 'In-room Safe', 'Private Bathroom', 'Hair Dryer', 'Tea & Coffee Maker', 'Room Service', 'Ocean View', 'Work Desk', 'Pool Access', 'Spa & Sauna'],
+        $base = [
+            'Free Wi-Fi',
+            'Air Conditioning',
+            'Flat-screen TV',
+            'Private Bathroom',
+            'Hair Dryer',
+            'Tea & Coffee Maker',
         ];
 
-        foreach ($plans as $roomNumber => $names) {
-            $room = Room::where('room_number', $roomNumber)->first();
-            if (! $room) {
-                continue;
-            }
+        $mid = [
+            'Mini Bar',
+            'Mini Fridge',
+            'In-room Safe',
+            'Work Desk',
+        ];
 
-            $room->amenities()->sync(
-                Amenity::whereIn('name', $names)->pluck('id')->all()
-            );
+        $premium = [
+            'Room Service',
+            'Ocean View',
+            'Pool Access',
+            'Spa & Sauna',
+        ];
+
+        foreach (self::FLOOR_PLAN as $floor => $typeNames) {
+            foreach (array_keys($typeNames) as $index) {
+                $roomNumber = (string) (($floor * 100) + ($index + 1));
+
+                $room = Room::where('room_number', $roomNumber)->first();
+                if (! $room) {
+                    continue;
+                }
+
+                $names = $base;
+
+                if ($floor >= 3) {
+                    $names = array_merge($names, $mid);
+                }
+
+                if ($floor >= 6 || $room->roomType->base_price >= 300) {
+                    $names = array_merge($names, $premium);
+                }
+
+                $room->amenities()->sync(
+                    Amenity::whereIn('name', $names)->pluck('id')->all()
+                );
+            }
         }
     }
 
