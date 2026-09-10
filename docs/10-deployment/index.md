@@ -1,6 +1,22 @@
 # 10 · Deployment & Infrastructure
 
-## 10.1 Deployment Architecture
+## 10.0 Production (Live) Deployment
+
+The system is currently **live in production** on two managed platforms:
+
+| Application | Stack | URL |
+| --- | --- | --- |
+| **Customer Website** | React 19 + Vite (static) | https://hotel-management-system-coral-six.vercel.app |
+| **Backend REST API** | Laravel 13 on **Render** | https://hotel-management-system-vhox.onrender.com/api/v1 |
+| **PostgreSQL Database** | Render Managed Postgres | Provisioned via Render dashboard (`DB_*` env vars) |
+| **Admin Console** | React 19 + Vite (static) | *Coming soon* |
+
+**Deployment notes**
+- **Render (backend)**: The Docker image is built from `backend/Dockerfile` and launched via `backend/docker/start.sh`, which runs migrations + `SampleDataSeeder` then boots `php-fpm`, `nginx`, and the Redis queue worker. Health checks must pass before Render considers a deploy successful.
+- **Vercel (customer frontend)**: A static SPA build from `frontend-customer/`, with `vercel.json` rewrites for client-side routing. `VITE_API_BASE_URL` must point to the Render API URL at build time.
+- **CORS / CSRF**: Set `APP_URL`/`FRONTEND_URL` on Render to allow the Vercel origin.
+
+## 10.1 Local Deployment Architecture
 
 The **Hotel Management System** runs on a containerized infrastructure orchestrated via **Docker Compose**. The backend, queue workers, schedulers, database, cache, web server, and automated backup daemons communicate over an isolated bridge network (`hotel_network`).
 

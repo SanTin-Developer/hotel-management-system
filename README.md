@@ -9,7 +9,13 @@
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
-> **Live Demo**: *Coming soon* (Backend deployment to Render is currently in progress).
+> **Live Demo (Production)**
+>
+> | Application | URL |
+> | --- | --- |
+> | **Customer Website** (React + Vite) | https://hotel-management-system-coral-six.vercel.app |
+> | **Backend REST API** (Laravel on Render) | https://hotel-management-system-vhox.onrender.com/api/v1 |
+> | **Admin Console** (React + Vite) | *Coming soon* |
 
 A modern, full-stack **Hotel Management System** built for **Kumpuchea Otel**, a boutique hospitality property located in Phnom Penh, Cambodia. The system integrates a public bilingual (English/Khmer) booking engine, a back-office administrative console, and a RESTful API backend deployed via Docker Compose.
 
@@ -129,7 +135,7 @@ The project requires the following environment variables across the backend and 
 | **`CLOUDINARY_CLOUD_NAME`**| Backend: Cloudinary cloud account | `your_cloud_name` *(for image uploads)* |
 | **`CLOUDINARY_API_KEY`** | Backend: Cloudinary API key | `your_api_key` |
 | **`CLOUDINARY_API_SECRET`**| Backend: Cloudinary API secret | `your_api_secret` |
-| **`VITE_API_BASE_URL`** | Customer & Admin: REST API target | `http://localhost:8000/api/v1` |
+| **`VITE_API_BASE_URL`** | Customer & Admin: REST API target | `https://hotel-management-system-vhox.onrender.com/api/v1` *(production)* / `http://localhost:8000/api/v1` *(local)* |
 
 ---
 
