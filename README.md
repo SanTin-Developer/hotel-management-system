@@ -281,3 +281,14 @@ Exhaustive, academic- and enterprise-grade technical documentation is organized 
 This project is open-source software licensed under the [MIT License](LICENSE).
 
 Copyright (c) 2026 **SanTin**. All rights reserved.
+
+### ⚠️ Copyright & Usage Notice
+
+You are welcome to **view, study, and learn from this project**. However, please respect the original author's work.
+
+**Do not copy, redistribute, publish, re-upload, or present this project or substantial portions of its source code as your own without the author's permission.**
+
+If you are a real developer, **respect the work, time, and effort behind the project.** Give proper credit to the original author and do not claim someone else's work as your own.
+
+For permission to reuse, modify, redistribute, or use this project commercially beyond the permissions granted by the license, please contact **SanTin**.
+
