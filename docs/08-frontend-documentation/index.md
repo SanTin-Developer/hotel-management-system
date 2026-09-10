@@ -189,3 +189,19 @@ flowchart TD
 | **Modal Dialogs** | Radix UI / shadcn/ui Dialog with animated backdrop blur. | Radix UI Modal & Slide-over Drawers (`Sheet`). |
 | **Data Tables** | Custom card lists with responsive pagination. | Reusable `DataTable` component with column sorting, search, and page size selector. |
 | **Feedback / Toasts** | Sonner toast alerts for success and form errors. | Sonner toast alerts with action confirmation dialogs. |
+
+---
+
+## 8.4 UI Screenshots
+
+### Customer Booking Flow
+
+| Step 1 — Search Stays | Step 2 — Guest Info | Step 3 — Review & Pay | Step 4 — Confirmation |
+| :---: | :---: | :---: | :---: |
+| ![Booking Flow Step 1](https://res.cloudinary.com/drercy9vt/image/upload/v1789019059/flow1_u4s9zn.png) | ![Booking Flow Step 2](https://res.cloudinary.com/drercy9vt/image/upload/v1789019059/flow2_cnfsjz.png) | ![Booking Flow Step 3](https://res.cloudinary.com/drercy9vt/image/upload/v1789019059/flow3_u22sjl.png) | ![Booking Flow Step 4](https://res.cloudinary.com/drercy9vt/image/upload/v1789019096/flow5_udny75.png) |
+
+### Back-Office & Catalog
+
+| Admin Operations Dashboard | Room Catalog & Availability |
+| :---: | :---: |
+| ![Admin Dashboard](https://res.cloudinary.com/drercy9vt/image/upload/v1789019096/AdminD_mmz4ud.png) | ![Room Catalog](https://res.cloudinary.com/drercy9vt/image/upload/v1789019099/room_eethqq.png) |

@@ -258,9 +258,17 @@ For the full test suite breakdown and verified test case inventory table, see [*
 
 *User interface previews of the customer booking flow and administrative back-office:*
 
-| Customer Booking Flow | Admin Operations Dashboard | Room Catalog & Availability |
-| :---: | :---: | :---: |
-| ![Booking Flow](docs/screenshots/booking-flow.png) | ![Admin Dashboard](docs/screenshots/admin-dashboard.png) | ![Room Catalog](docs/screenshots/room-catalog.png) |
+### Customer Booking Flow
+
+| Step 1 — Search Stays | Step 2 — Guest Info | Step 3 — Review & Pay | Step 4 — Confirmation |
+| :---: | :---: | :---: | :---: |
+| ![Booking Flow Step 1](https://res.cloudinary.com/drercy9vt/image/upload/v1789019059/flow1_u4s9zn.png) | ![Booking Flow Step 2](https://res.cloudinary.com/drercy9vt/image/upload/v1789019059/flow2_cnfsjz.png) | ![Booking Flow Step 3](https://res.cloudinary.com/drercy9vt/image/upload/v1789019059/flow3_u22sjl.png) | ![Booking Flow Step 4](https://res.cloudinary.com/drercy9vt/image/upload/v1789019096/flow5_udny75.png) |
+
+### Back-Office & Catalog
+
+| Admin Operations Dashboard | Room Catalog & Availability |
+| :---: | :---: |
+| ![Admin Dashboard](https://res.cloudinary.com/drercy9vt/image/upload/v1789019096/AdminD_mmz4ud.png) | ![Room Catalog](https://res.cloudinary.com/drercy9vt/image/upload/v1789019099/room_eethqq.png) |
 
 ---
 
