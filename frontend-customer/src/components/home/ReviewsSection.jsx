@@ -245,7 +245,7 @@ function ReviewForm() {
 }
 
 export function ReviewsSection({ limit = 3 }) {
-  const { t } = useI18n();
+  const { t, isKh } = useI18n();
 
   const { data: reviews = [], isPending } = useQuery({
     queryKey: ["home-reviews"],
@@ -276,7 +276,7 @@ export function ReviewsSection({ limit = 3 }) {
               >
                 <Quote className="size-7 text-gold-400" />
                 <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-foreground/85">
-                  “{review.comment}”
+                  “{isKh && review.comment_kh ? review.comment_kh : review.comment}”
                 </blockquote>
                 <figcaption className="mt-6 flex items-center gap-3 border-t border-border pt-5">
                   <img
