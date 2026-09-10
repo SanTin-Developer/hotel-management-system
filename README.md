@@ -15,7 +15,7 @@
 > | --- | --- |
 > | **Customer Website** (React + Vite) | https://hotel-management-system-coral-six.vercel.app |
 > | **Backend REST API** (Laravel on Render) | https://hotel-management-system-vhox.onrender.com/api/v1 |
-> | **Admin Console** (React + Vite) | *Coming soon* |
+> | **Admin Console** (React + Vite) | https://hotel-management-system-27rd.vercel.app |
 
 A modern, full-stack **Hotel Management System** built for **Kumpuchea Otel**, a boutique hospitality property located in Phnom Penh, Cambodia. The system integrates a public bilingual (English/Khmer) booking engine, a back-office administrative console, and a RESTful API backend deployed via Docker Compose.
 
