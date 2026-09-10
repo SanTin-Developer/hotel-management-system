@@ -9,9 +9,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('registration_otps', function (Blueprint $table) {
-            $table->string('nationality', 100)->nullable()->after('country');
-            $table->date('date_of_birth')->nullable()->after('nationality');
-            $table->text('address')->nullable()->after('date_of_birth');
+            if (! Schema::hasColumn('registration_otps', 'nationality')) {
+                $table->string('nationality', 100)->nullable()->after('country');
+            }
+
+            if (! Schema::hasColumn('registration_otps', 'date_of_birth')) {
+                $table->date('date_of_birth')->nullable()->after('nationality');
+            }
+
+            if (! Schema::hasColumn('registration_otps', 'address')) {
+                $table->text('address')->nullable()->after('date_of_birth');
+            }
         });
     }
 
