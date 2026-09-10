@@ -7,7 +7,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-336791?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org)
 [![Redis](https://img.shields.io/badge/Redis-8-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+
 
 > **Live Demo (Production)**
 >
@@ -284,7 +284,7 @@ Exhaustive, academic- and enterprise-grade technical documentation is organized 
 
 ## 11. License
 
-This project is open-source software licensed under the [MIT License](LICENSE).
+This project is **proprietary** and **all rights are reserved**.
 
 Copyright (c) 2026 **SanTin**. All rights reserved.
 
