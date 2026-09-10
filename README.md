@@ -284,17 +284,31 @@ Exhaustive, academic- and enterprise-grade technical documentation is organized 
 
 ## 11. License
 
-This project is **proprietary** and **all rights are reserved**.
+# Copyright (c) 2026 SanTin. All Rights Reserved.
 
-Copyright (c) 2026 **SanTin**. All rights reserved.
+This project, including its Source Code, Design, Documentation, Assets, and all related materials, is the intellectual property of **SanTin**.
+
+You may view and study this project for educational and personal learning purposes.
 
 ### ⚠️ Copyright & Usage Notice
 
-You are welcome to **view, study, and learn from this project**. However, please respect the original author's work.
+**A real developer respects another developer's work. Please respect the time, effort, and creativity invested in creating this project. Do not copy, re-upload, redistribute, or claim this project as your own without my permission.**
 
-**Do not copy, redistribute, publish, re-upload, or present this project or substantial portions of its source code as your own without the author's permission.**
+Without prior written permission from **SanTin**, you may NOT:
 
-If you are a real developer, **respect the work, time, and effort behind the project.** Give proper credit to the original author and do not claim someone else's work as your own.
+* ❌ Copy the Source Code or substantial portions of this project.
+* ❌ Re-upload or redistribute this project or substantial portions of it.
+* ❌ Publish this project as your own work.
+* ❌ Claim authorship or ownership of this project.
+* ❌ Use substantial portions of the code in another project.
+* ❌ Sell or use this project for commercial purposes.
+* ❌ Remove or modify the Copyright Notice or Attribution.
+* ❌ Submit this project as your own academic, professional, or personal work.
 
-For permission to reuse, modify, redistribute, or use this project commercially beyond the permissions granted by the license, please contact **SanTin**.
+If you wish to use, modify, redistribute, or use substantial portions of this project, you must obtain prior permission from **SanTin**.
+
+Any unauthorized use, copying, redistribution, re-uploading, or misrepresentation of this project is strictly prohibited.
+
+Copyright (c) 2026 **SanTin**. All Rights Reserved.
+
 
