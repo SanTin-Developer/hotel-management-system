@@ -290,33 +290,63 @@ Exhaustive, academic- and enterprise-grade technical documentation is organized 
 
 ---
 
-## 11. License
+## 11. PROPRIETARY SOFTWARE & COPYRIGHT NOTICE
 
-# Copyright (c) 2026 SanTin. All Rights Reserved.
+**Copyright © 2026 SanTin. All Rights Reserved.**
 
-This project, including its Source Code, Design, Documentation, Assets, and all related materials, is the intellectual property of **SanTin**.
+This project and all associated materials—including but not limited to source code, software architecture, UI/UX design, visual assets, documentation, and other original components—are the intellectual property of **SanTin**, except where otherwise stated.
 
-You may view and study this project for educational and personal learning purposes.
+## 1. OWNERSHIP & INTELLECTUAL PROPERTY
 
-### ⚠️ Copyright & Usage Notice
+All rights to the original materials contained in this project are expressly reserved by the copyright holder.
 
-**A real developer respects another developer's work. Please respect the time, effort, and creativity invested in creating this project. Do not copy, re-upload, redistribute, or claim this project as your own without my permission.**
+**This repository is provided for viewing, reference, and personal educational study only. Public availability does not constitute a license, transfer of ownership, or authorization to use, reproduce, modify, or distribute any part of this project.**
 
-Without prior written permission from **SanTin**, you may NOT:
+## 2. PERMITTED USE
 
-* ❌ Copy the Source Code or substantial portions of this project.
-* ❌ Re-upload or redistribute this project or substantial portions of it.
-* ❌ Publish this project as your own work.
-* ❌ Claim authorship or ownership of this project.
-* ❌ Use substantial portions of the code in another project.
-* ❌ Sell or use this project for commercial purposes.
-* ❌ Remove or modify the Copyright Notice or Attribution.
-* ❌ Submit this project as your own academic, professional, or personal work.
+You may access this repository to:
 
-If you wish to use, modify, redistribute, or use substantial portions of this project, you must obtain prior permission from **SanTin**.
+- View and study the source code for personal educational purposes.
+- Learn from the implementation, architecture, and development techniques.
+- Reference the project for non-commercial learning without reproducing substantial portions of its original materials.
 
-Any unauthorized use, copying, redistribution, re-uploading, or misrepresentation of this project is strictly prohibited.
+These permissions do not grant the right to reuse or redistribute the project's original work.
 
-Copyright (c) 2026 **SanTin**. All Rights Reserved.
+## 3. RESTRICTED ACTIVITIES
 
+Without **prior explicit written permission from SanTin**, you are strictly prohibited from:
+
+- **Reproducing** — copying or incorporating substantial portions of the source code, design, assets, or other original materials into another project.
+- **Redistributing** — re-uploading, publishing, sharing, sublicensing, or distributing this project or substantial portions of it.
+- **Misrepresenting authorship** — claiming, implying, or presenting this project or its original work as your own.
+- **Unauthorized modification and publication** — modifying and publishing derivative versions or forks that reproduce substantial portions of the protected materials.
+- **Commercial exploitation** — selling, licensing, monetizing, or commercially using this project or substantial portions of its original materials.
+- **Removing attribution** — removing, concealing, or altering copyright notices or ownership attributions included with the project.
+- **Academic or professional misrepresentation** — submitting this project, or substantial portions of its original work, as your own independently created work.
+
+## 4. PERMISSION & LICENSING
+
+Any use beyond the expressly permitted educational viewing and study requires prior written authorization from **SanTin**.
+
+Permission requests should clearly identify the intended use, the materials involved, and whether the proposed use is commercial or non-commercial.
+
+No permission, license, or other rights are granted by implication, estoppel, or the mere act of making this repository publicly accessible.
+
+## 5. ENFORCEMENT & RESERVATION OF RIGHTS
+
+Unauthorized reproduction, distribution, commercial exploitation, or misrepresentation of protected materials may constitute copyright infringement or other violations of applicable law.
+
+The copyright holder reserves all rights and remedies available under applicable law, including the right to request removal of unauthorized copies and pursue appropriate legal remedies where warranted.
+
+## FINAL STATEMENT
+
+**PUBLICLY ACCESSIBLE DOES NOT MEAN FREE TO REUSE.**
+
+Respect the creator. Respect the intellectual property. Give credit where it is due—but understand that attribution alone does not replace permission.
+
+This project represents original work, development time, technical decisions, and creative effort. Its availability for learning must not be interpreted as consent to appropriate, reproduce, or exploit that work.
+
+**Copyright © 2026 SanTin. All Rights Reserved.**
+
+Unauthorized use is not authorized simply because the source code is visible.
 
