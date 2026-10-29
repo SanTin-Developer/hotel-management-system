@@ -290,7 +290,7 @@ Exhaustive, academic- and enterprise-grade technical documentation is organized 
 
 ---
 
-## 11. PROPRIETARY SOFTWARE & COPYRIGHT NOTICE
+## 11. PROPRIETARY SOFTWARE & COPYRIGHT NOTICE ⚠️❌
 
 **Copyright © 2026 SanTin. All Rights Reserved.**
 
