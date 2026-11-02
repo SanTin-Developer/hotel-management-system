@@ -229,10 +229,10 @@ class SampleDataSeeder extends Seeder
     private function seedOwnerAdmin(): void
     {
         $user = User::updateOrCreate(
-            ['email' => 'santinoeurn0601@gmail.com'],
+            ['email' => 'adminsystem@hotel.local'],
             [
                 'name' => 'SanTin',
-                'password' => Hash::make('SanTin0011@@'),
+                'password' => Hash::make('Admin00@@'),
                 'status' => 'active',
             ]
         );
